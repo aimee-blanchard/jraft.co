@@ -86,10 +86,7 @@ main > section + section { border-top: 1px solid var(--line); }
 .sh { display: grid; grid-template-columns: 220px 1fr auto; gap: 24px; align-items: end; margin-bottom: 48px; }
 
 /* who it's for and why, inside the hero */
-.pitch-body { display: grid; grid-template-columns: 1.15fr 1fr; gap: 24px 56px; margin-top: 48px; }
-.pitch-body p { margin: 0; color: #c4c4c4; font-size: 18px; max-width: 54ch; }
-.pitch-body .lead { color: var(--fg); font-size: 21px; line-height: 1.55; }
-.gains { list-style: none; margin: 64px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--line); }
+.gains { list-style: none; margin: 56px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--line); }
 .gains li { padding: 24px 24px 0 0; min-width: 0; }
 .gains li + li { padding-left: 24px; border-left: 1px solid var(--line); }
 .gains b { display: block; font: 700 22px/1.15 var(--display); font-stretch: 105%; margin: 0 0 8px; }
@@ -136,7 +133,6 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
 
 @media (max-width: 900px) {
   .row { grid-template-columns: 1fr; gap: 10px; }
-  .pitch-body { grid-template-columns: 1fr; }
   .gains { grid-template-columns: 1fr; }
   .gains li + li { padding-left: 0; border-left: 0; border-top: 1px solid var(--line); margin-top: 24px; }
   .sh { grid-template-columns: 1fr; gap: 10px; }
@@ -149,11 +145,10 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
   .wrap { padding-left: max(calc(var(--rule) + 18px), env(safe-area-inset-left, 0px)); padding-right: max(18px, env(safe-area-inset-right, 0px)); }
   .samples { grid-template-columns: 1fr; }
   .about { font-size: 17px; }
-  .pitch-body .lead, .hero-sub { font-size: 19px; }
+  .hero-sub { font-size: 19px; }
   .steps { grid-template-columns: 1fr; }
   .steps .top-row span + span { display: none; } /* the → arrows only make sense side by side */
   .steps li + li { border-left: 0; border-top: 1px solid var(--line); }
-  .pitch-body p { font-size: 17px; }
   .logo { width: 92px; height: 92px; margin: -10px 0 -10px -10px; }
   .btn-top { padding: 12px 14px; gap: 10px; font-size: 11px; }
 }
@@ -172,14 +167,10 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
         <span class="mono eyebrow">For design firms · Architects · General contractors</span>
         <h1><span class="l">Stop redr<span class="drawn">a</span>wing.</span> <span class="l">St<span class="drawn">a</span>rt <span class="demo" title="Knock it down again"><span class="ch">d</span><span class="ch">e</span><span class="ch">m</span><span class="ch">o</span><span class="ch">.</span></span></span></h1>
         <p class="hero-sub">Residential drafting for designers and builders. Send your ideas, get back construction-ready plans.</p>
-        <div class="pitch-body">
-          <p class="lead">Designers end up fighting CAD, then an architect redraws it all for permit. Do it once, correctly.</p>
-          <p>Take that work off your plate. I know CAD inside and out, so your plans come back faster, cleaner and accurate the first time, ready for construction or your permit process.</p>
-        </div>
         <ul class="gains">
           <li><b>Right the first time.</b><p>Fewer redraws between design, permit and build.</p></li>
           <li><b>Keep projects moving.</b><p>Drawings that never hold up your design, permit or build.</p></li>
-          <li><b>Take on more projects.</b><p>No software to learn, no one to hire.</p></li>
+          <li><b>Take on more projects.</b><p>I handle the drafting, so your team stays focused on design and building.</p></li>
         </ul>
       </div>
       <div class="bar mono">
