@@ -19,6 +19,7 @@
 <style>
 /* Layout: the whole page sits on a drafting grid with rulers on the top and left edges and a CAD crosshair; hero headline, services as a sheet index, contact, ruler edge as the footer. Black and white only. */
 :root {
+  --gap: clamp(72px, 9vw, 112px); /* space above and below every section */
   --bg: #000;
   --line: #222;
   --fg: #f5f5f5;
@@ -69,8 +70,12 @@ h1 .nw { white-space: nowrap; }
 @keyframes fade { to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .drawn .ln { animation: none; stroke-dashoffset: 0; stroke-dasharray: none; } .drawn .guide, .drawn .pt { animation: none; opacity: 1; } }
 
-/* pitch: who it's for and why. Its extra top padding is the space taken out of the hero above "Drawn to scale." */
-.pitch { padding-block: calc(72px + min(186px, 22vh)) 96px; }
+/* sections: the same space above and below every section, with a rule between them */
+main > section { padding-block: var(--gap); }
+main > section + section { border-top: 1px solid var(--line); }
+.sh { display: grid; grid-template-columns: 220px 1fr auto; gap: 24px; align-items: end; margin-bottom: 48px; }
+
+/* pitch: who it's for and why */
 .statement { max-width: 20ch; margin-top: 18px; }
 .sub { margin: 24px 0 0; max-width: 46ch; font-size: 21px; line-height: 1.5; color: var(--fg); }
 .pitch-body { display: grid; grid-template-columns: 1.15fr 1fr; gap: 24px 56px; margin-top: 48px; }
@@ -83,16 +88,19 @@ h1 .nw { white-space: nowrap; }
 .gains p { margin: 0; color: #bdbdbd; font-size: 15px; }
 
 /* services */
-.services { padding-block: 72px 96px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 .index { border-top: 1px solid var(--line); }
 .row { display: grid; grid-template-columns: 220px 1fr 1.3fr; gap: 24px; padding-block: 24px; border-bottom: 1px solid var(--line); transition: background .3s; }
 .row:hover { background: rgba(255,255,255,.035); }
 .row h3 { font: 700 26px/1.1 var(--display); font-stretch: 105%; margin: 0; }
 .row p { margin: 0; color: #c4c4c4; max-width: 52ch; }
 
-/* what to expect: four numbered steps, then the turnaround and first-project rate */
-.expect { padding-block: 104px 0; }
-.sh { display: grid; grid-template-columns: 220px 1fr auto; gap: 24px; align-items: end; margin-bottom: 48px; }
+/* sample work: a grid of drawings and renderings with sheet-style captions */
+.samples { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+.samples figure { margin: 0; }
+.samples img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border: 1px solid var(--line); background: #0b0b0b; }
+.samples figcaption { display: flex; justify-content: space-between; gap: 12px; margin-top: 10px; }
+
+/* how it works: four numbered steps, then turnaround and first-project rate, then a short about */
 .steps { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--line); background: rgba(0,0,0,.55); }
 .steps li { padding: 28px 24px 32px; min-width: 0; }
 .steps li + li { border-left: 1px solid var(--line); }
@@ -103,12 +111,13 @@ h1 .nw { white-space: nowrap; }
 .terms { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--line); border-top: 0; background: rgba(0,0,0,.55); }
 .terms div { padding: 24px; min-width: 0; }
 .terms div + div { border-left: 1px solid var(--line); }
-.terms strong { display: block; font: 800 clamp(30px, 4vw, 48px)/1 var(--display); font-stretch: 112%; margin: 12px 0 8px; }
+.terms strong { display: block; font: 800 clamp(26px, 3.2vw, 40px)/1.05 var(--display); font-stretch: 112%; margin: 12px 0 8px; }
 .terms p { margin: 0; color: var(--mid); font-size: 15px; }
 ol.steps { list-style: none; margin: 0; padding: 0; }
+.about { display: grid; grid-template-columns: 220px 1fr; gap: 12px 24px; margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--line); }
+.about p { margin: 0; max-width: 60ch; font-size: 19px; line-height: 1.6; color: #d6d6d6; }
 
 /* contact */
-.contact { padding-block: 104px 120px; }
 h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; text-transform: uppercase; margin: 0; letter-spacing: -.01em; text-wrap: balance; }
 .reach { display: flex; align-items: center; gap: 20px 28px; flex-wrap: wrap; margin-top: 44px; }
 .email { font: 700 clamp(26px, 4vw, 48px)/1.1 var(--display); font-stretch: 105%; padding-bottom: 6px; border-bottom: 2px solid var(--fg); user-select: all; overflow-wrap: anywhere; }
@@ -125,18 +134,18 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
   .pitch-body { grid-template-columns: 1fr; }
   .gains { grid-template-columns: 1fr; }
   .gains li + li { padding-left: 0; border-left: 0; border-top: 1px solid var(--line); margin-top: 24px; }
-  .services { padding-block: 56px 72px; }
-  .expect { padding-top: 80px; }
   .sh { grid-template-columns: 1fr; gap: 10px; }
+  .samples { grid-template-columns: 1fr 1fr; }
+  .about { grid-template-columns: 1fr; }
   .steps { grid-template-columns: 1fr 1fr; }
   .steps li:nth-child(3) { border-left: 0; }
   .steps li:nth-child(n+3) { border-top: 1px solid var(--line); }
-  .contact { padding-block: 80px 96px; }
 }
 @media (max-width: 560px) {
   .wrap { padding-left: max(calc(var(--rule) + 18px), env(safe-area-inset-left, 0px)); padding-right: max(18px, env(safe-area-inset-right, 0px)); }
   .hero .wrap { min-height: min(579px, calc(40vh + 269px)); }
-  .pitch { padding-block: calc(56px + min(147px, 18vh)) 72px; }
+  .samples { grid-template-columns: 1fr; }
+  .about p { font-size: 17px; }
   .pitch-body .lead, .sub { font-size: 19px; }
   .steps, .terms { grid-template-columns: 1fr; }
   .steps .top-row span + span { display: none; } /* the → arrows only make sense side by side */
@@ -174,13 +183,13 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
       <div class="wrap">
         <span class="mono">For design firms · Architects · General contractors</span>
         <h2 class="statement">Stop redrawing. Start building.</h2>
-        <p class="sub">Residential drafting for designers and builders. Send your ideas, get accurate, construction-ready plans back within 5 days.</p>
+        <p class="sub">Residential drafting for designers and builders. Send your ideas and get back accurate, construction-ready plans, organized and ready for your review.</p>
         <div class="pitch-body">
           <p class="lead">Designers end up fighting CAD, then an architect redraws it all for permit. Do it once, correctly.</p>
           <p>Take that work off your plate. I know CAD inside and out, so your plans come back faster, cleaner and accurate the first time, ready for construction or your permit process.</p>
         </div>
         <ul class="gains">
-          <li><b>Back in days, not weeks.</b></li>
+          <li><b>Back in days, not weeks.</b><p>Plans come back fast, so projects don't stall waiting on drawings.</p></li>
           <li><b>Right the first time.</b><p>Fewer redraws between design, permit and build.</p></li>
           <li><b>Take on more projects.</b><p>No software to learn, no one to hire.</p></li>
         </ul>
@@ -209,9 +218,18 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
       </div>
     </section>
 
+    <!-- Sample work: hidden until real drawings and renderings are added. Each item:
+         <li><figure><img src="work/plan-1.jpg" alt="Floor plan for …" loading="lazy"><figcaption><span class="mono">A-101</span><span class="mono">Floor plan</span></figcaption></figure></li> -->
+    <section class="work" aria-labelledby="work-title" hidden>
+      <div class="wrap">
+        <div class="sh"><span class="mono">Sample work</span><h2 id="work-title">Recent sets</h2><span class="mono">Plans · Renderings</span></div>
+        <ul class="samples"></ul>
+      </div>
+    </section>
+
     <section class="expect" aria-labelledby="expect-title">
       <div class="wrap">
-        <div class="sh"><span class="mono">What to expect</span><h2 id="expect-title">Sketch to set in 5 days</h2><span class="mono">4 steps</span></div>
+        <div class="sh"><span class="mono">Process</span><h2 id="expect-title">How it works</h2><span class="mono">4 steps</span></div>
         <ol class="steps">
           <li><div class="top-row"><span class="mono">Step</span><span class="mono" aria-hidden="true">→</span></div><span class="n">01</span><h3>Send your sketches</h3><p>Scans, photos, redlines or design files. Whatever you have is a fine place to start.</p></li>
           <li><div class="top-row"><span class="mono">Step</span><span class="mono" aria-hidden="true">→</span></div><span class="n">02</span><h3>Get a quote</h3><p>I review the scope and send you a price before any drafting starts.</p></li>
@@ -219,8 +237,12 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
           <li><div class="top-row"><span class="mono">Step</span></div><span class="n">04</span><h3>Receive your set</h3><p>Clean, to-scale plans, ready for construction or your permit process.</p></li>
         </ol>
         <div class="terms">
-          <div><span class="mono">Turnaround</span><strong>5 days</strong><p>From your sketches to a finished set.</p></div>
+          <div><span class="mono">Turnaround</span><strong>Fast, clean turnarounds</strong><p>Plans that come back organized and ready for review.</p></div>
           <div><span class="mono">First project</span><strong>$70/hr</strong><p>An introductory rate for your first project with me.</p></div>
+        </div>
+        <div class="about">
+          <span class="mono">About</span>
+          <p>I'm Josh, the draftsman behind Jrafting LLC. You work directly with me from your first sketch to the finished set, and every drawing is held to the same standard: accurate, organized and to scale.</p>
         </div>
       </div>
     </section>
@@ -243,7 +265,7 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
 <script>
 // Pre-filled inquiry email: opens the visitor's own mail app.
 (function () {
-  var body = 'Name:\nPhone number:\nProject location (state, county, city):\nWhat you\'re looking for (room remodel, plan sets, etc.):\n\n';
+  var body = ['Name:', 'Phone number:', 'Project location (state, county, city):', 'What you\'re looking for (room remodel, plan sets, etc.):', ''].join('\r\n\r\n');
   var href = 'mailto:hello@jraft.co?subject=' + encodeURIComponent('Jrafting Inquiry') + '&body=' + encodeURIComponent(body);
   document.querySelectorAll('[data-mail]').forEach(function (a) { a.href = href; });
 })();
