@@ -46,17 +46,20 @@ a { color: inherit; text-decoration: none; }
 
 /* hero */
 .hero { border-bottom: 1px solid var(--line); }
-.hero .wrap { display: grid; grid-template-rows: auto 1fr auto; min-height: min(609px, calc(44vh + 259px)); padding-top: calc(var(--rule) + 22px); }
+.hero .wrap { padding-top: calc(var(--rule) + 22px); }
 .top { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
 .logo { display: block; width: 116px; height: 116px; margin: -12px 0 -12px -12px; }
 /* The logo file has a black background; "screen" drops the black so the grid shows through */
 .logo img { width: 100%; height: 100%; display: block; mix-blend-mode: screen; }
-.copy { align-self: end; padding-block: 72px 40px; }
-h1 { font: 850 clamp(40px, 12.5vw, 110px)/.9 var(--display); font-stretch: 112%; letter-spacing: -.02em; text-transform: uppercase; margin: 0; }
-h1 .nw { white-space: nowrap; }
-.hero-sub { margin: 28px 0 0; max-width: 44ch; font-size: clamp(18px, 1.9vw, 23px); line-height: 1.45; color: #cfcfcf; text-wrap: balance; }
-/* "Drawn to scale." is 10.63em wide: fill the content column on one line */
-@media (min-width: 900px) { h1 { font-size: calc((min(100vw, 1240px) - 86px) / 10.9); } }
+.copy { padding-block: clamp(56px, 9vh, 104px) 56px; }
+.eyebrow { display: block; margin-bottom: 20px; }
+h1 .l { display: block; }
+h1 { font: 850 40px/.9 var(--display); font-stretch: 112%; letter-spacing: -.02em; text-transform: uppercase; margin: 0; }
+.hero-sub { margin: 28px 0 0; max-width: 46ch; font-size: 21px; line-height: 1.5; color: var(--fg); }
+/* "Stop redrawing." (10.87em) is the wider line: size the headline so it fills the content column.
+   Below 900px the lines wrap and "Redrawing." (7.54em) is the longest word. */
+h1 { font-size: min(96px, calc((100vw - 58px) / 7.8)); }
+@media (min-width: 900px) { h1 { font-size: calc((min(100vw, 1240px) - 86px) / 11.1); } }
 .bar { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; border-top: 1px solid var(--line); padding-block: 14px; }
 .bar .live::before { content: ""; display: inline-block; width: 6px; height: 6px; background: var(--fg); margin-right: 8px; vertical-align: 1px; }
 
@@ -75,9 +78,7 @@ main > section { padding-block: var(--gap); }
 main > section + section { border-top: 1px solid var(--line); }
 .sh { display: grid; grid-template-columns: 220px 1fr auto; gap: 24px; align-items: end; margin-bottom: 48px; }
 
-/* pitch: who it's for and why */
-.statement { max-width: 20ch; margin-top: 18px; }
-.sub { margin: 24px 0 0; max-width: 46ch; font-size: 21px; line-height: 1.5; color: var(--fg); }
+/* who it's for and why, inside the hero */
 .pitch-body { display: grid; grid-template-columns: 1.15fr 1fr; gap: 24px 56px; margin-top: 48px; }
 .pitch-body p { margin: 0; color: #c4c4c4; font-size: 18px; max-width: 54ch; }
 .pitch-body .lead { color: var(--fg); font-size: 21px; line-height: 1.55; }
@@ -143,10 +144,9 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
 }
 @media (max-width: 560px) {
   .wrap { padding-left: max(calc(var(--rule) + 18px), env(safe-area-inset-left, 0px)); padding-right: max(18px, env(safe-area-inset-right, 0px)); }
-  .hero .wrap { min-height: min(579px, calc(40vh + 269px)); }
   .samples { grid-template-columns: 1fr; }
   .about p { font-size: 17px; }
-  .pitch-body .lead, .sub { font-size: 19px; }
+  .pitch-body .lead, .hero-sub { font-size: 19px; }
   .steps, .terms { grid-template-columns: 1fr; }
   .steps .top-row span + span { display: none; } /* the → arrows only make sense side by side */
   .steps li + li { border-left: 0; border-top: 1px solid var(--line); }
@@ -167,23 +167,9 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
         <a class="btn btn-top" data-mail href="mailto:hello@jraft.co">Email me <span>→</span></a>
       </div>
       <div class="copy">
-        <h1>Dr<span class="drawn">a</span>wn <span class="nw">to sc<span class="drawn">a</span>le.</span></h1>
-        <p class="hero-sub">Construction drawings, renderings and permit sets for residential designers and builders.</p>
-      </div>
-      <div class="bar mono">
-        <span>Scale ¼" = 1'-0"</span>
-        <span id="readout">X 0'-0" · Y 0'-0"</span>
-        <span class="live">hello@jraft.co</span>
-      </div>
-    </div>
-  </header>
-
-  <main>
-    <section class="pitch" aria-label="Who I work with">
-      <div class="wrap">
-        <span class="mono">For design firms · Architects · General contractors</span>
-        <h2 class="statement">Stop redrawing. Start building.</h2>
-        <p class="sub">Residential drafting for designers and builders. Send your ideas and get back accurate, construction-ready plans, organized and ready for your review.</p>
+        <span class="mono eyebrow">For design firms · Architects · General contractors</span>
+        <h1><span class="l">Stop redr<span class="drawn">a</span>wing.</span> <span class="l">St<span class="drawn">a</span>rt demo.</span></h1>
+        <p class="hero-sub">Residential drafting for designers and builders. Send your ideas and get back accurate, construction-ready plans, organized and ready for your review.</p>
         <div class="pitch-body">
           <p class="lead">Designers end up fighting CAD, then an architect redraws it all for permit. Do it once, correctly.</p>
           <p>Take that work off your plate. I know CAD inside and out, so your plans come back faster, cleaner and accurate the first time, ready for construction or your permit process.</p>
@@ -194,8 +180,15 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
           <li><b>Take on more projects.</b><p>No software to learn, no one to hire.</p></li>
         </ul>
       </div>
-    </section>
+      <div class="bar mono">
+        <span>Scale ¼" = 1'-0"</span>
+        <span id="readout">X 0'-0" · Y 0'-0"</span>
+        <span class="live">hello@jraft.co</span>
+      </div>
+    </div>
+  </header>
 
+  <main>
     <section class="services" aria-label="Services">
       <div class="wrap">
         <div class="index">
