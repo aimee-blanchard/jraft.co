@@ -117,7 +117,9 @@ main > section + section { border-top: 1px solid var(--line); }
 .rate { display: flex; align-items: baseline; gap: 10px 24px; flex-wrap: wrap; margin: 0; padding: 20px 24px; border: 1px solid var(--line); border-top: 0; background: rgba(0,0,0,.55); color: #c4c4c4; font-size: 17px; }
 .rate strong { color: var(--fg); font: 700 20px/1 var(--display); font-stretch: 105%; }
 ol.steps { list-style: none; margin: 0; padding: 0; }
-.about { margin: 28px 0 0; max-width: 60ch; font-size: 19px; line-height: 1.6; color: #d6d6d6; }
+/* the blurb spans exactly the width of the "Let's work together." headline */
+.close-head { width: fit-content; max-width: 100%; }
+.about { width: 0; min-width: 100%; margin: 28px 0 0; font-size: 19px; line-height: 1.6; color: #d6d6d6; }
 
 /* contact */
 h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; text-transform: uppercase; margin: 0; letter-spacing: -.01em; text-wrap: balance; }
@@ -168,9 +170,9 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
         <h1><span class="l">Stop redr<span class="drawn">a</span>wing.</span> <span class="l">St<span class="drawn">a</span>rt <span class="demo" title="Knock it down again"><span class="ch">d</span><span class="ch">e</span><span class="ch">m</span><span class="ch">o</span><span class="ch">.</span></span></span></h1>
         <p class="hero-sub">Residential drafting for designers and general contractors. Send your ideas, get back construction-ready plans.</p>
         <ul class="gains">
-          <li><b>Right the first time.</b><p>Fewer redraws between design, permit and build.</p></li>
-          <li><b>Keep projects moving.</b><p>Drawings that never hold up your design, permit or build.</p></li>
-          <li><b>Take on more projects.</b><p>I handle the drafting, so your team stays focused on design and building.</p></li>
+          <li><b>Right the first time.</b><p>Accurate drawings mean fewer redraws between design, permit and build.</p></li>
+          <li><b>Nothing stalls.</b><p>Clean, organized plan sets keep you moving from design to permit to demo.</p></li>
+          <li><b>Room to grow.</b><p>Say yes to more clients while the drafting is handled for you.</p></li>
         </ul>
       </div>
     </div>
@@ -223,8 +225,10 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
 
     <section class="contact" id="contact">
       <div class="wrap">
-        <h2>Let's work together.</h2>
-        <p class="about">I'm Josh, the draftsman behind Jrafting LLC. You work directly with me from your first sketch to the finished set, and every drawing is held to the same standard: accurate, organized and to scale.</p>
+        <div class="close-head">
+          <h2>Let's work together.</h2>
+          <p class="about">I’m Josh, the draftsman behind Jrafting LLC. You work directly with me from first sketch to finished set. I’ve tuned every step of my CAD workflow, so your plans don’t sit in a queue and hold you up from design to permit to demo. I look forward to working together.</p>
+        </div>
         <div class="reach">
           <span class="email">hello@jraft.co</span>
           <a class="btn" data-mail href="mailto:hello@jraft.co">Email me <span>→</span></a>
