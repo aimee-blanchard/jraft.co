@@ -45,7 +45,7 @@ a { color: inherit; text-decoration: none; }
 .mono { font: 400 11px/1.4 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--mid); }
 
 /* hero */
-.hero { border-bottom: 1px solid var(--line); }
+.hero { border-bottom: 1px solid var(--line); overflow-x: hidden; overflow-x: clip; } /* the wrecking ball swings in from past the edge */
 .hero .wrap { padding-top: calc(var(--rule) + 22px); }
 .top { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
 .logo { display: block; width: 116px; height: 116px; margin: -12px 0 -12px -12px; }
@@ -71,6 +71,13 @@ h1 { font-size: min(96px, calc((100vw - 58px) / 7.8)); }
 .drawn .pt { fill: var(--fg); opacity: 0; animation: fade .3s ease forwards; }
 @keyframes draw { to { stroke-dashoffset: 0; } }
 @keyframes fade { to { opacity: 1; } }
+
+/* "Demo.": a line-drawn wrecking ball knocks the letters askew; they rest tumbled but readable */
+.demo { position: relative; display: inline-block; white-space: nowrap; cursor: pointer; }
+.demo .ch { display: inline-block; transform-origin: 50% 85%; }
+.wb { position: absolute; left: 0; top: 0; width: 0; height: 0; pointer-events: none; transform-origin: 0 0; }
+.wb svg { position: absolute; left: 0; top: 0; overflow: visible; }
+.dust { position: absolute; left: 0; top: 0; width: 4px; height: 4px; background: var(--mid); pointer-events: none; }
 @media (prefers-reduced-motion: reduce) { .drawn .ln { animation: none; stroke-dashoffset: 0; stroke-dasharray: none; } .drawn .guide, .drawn .pt { animation: none; opacity: 1; } }
 
 /* sections: the same space above and below every section, with a rule between them */
@@ -168,16 +175,16 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
       </div>
       <div class="copy">
         <span class="mono eyebrow">For design firms · Architects · General contractors</span>
-        <h1><span class="l">Stop redr<span class="drawn">a</span>wing.</span> <span class="l">St<span class="drawn">a</span>rt demo.</span></h1>
+        <h1><span class="l">Stop redr<span class="drawn">a</span>wing.</span> <span class="l">St<span class="drawn">a</span>rt <span class="demo" title="Knock it down again"><span class="ch">d</span><span class="ch">e</span><span class="ch">m</span><span class="ch">o</span><span class="ch">.</span></span></span></h1>
         <p class="hero-sub">Residential drafting for designers and builders. Send your ideas and get back accurate, construction-ready plans, organized and ready for your review.</p>
         <div class="pitch-body">
           <p class="lead">Designers end up fighting CAD, then an architect redraws it all for permit. Do it once, correctly.</p>
           <p>Take that work off your plate. I know CAD inside and out, so your plans come back faster, cleaner and accurate the first time, ready for construction or your permit process.</p>
         </div>
         <ul class="gains">
-          <li><b>Back in days, not weeks.</b><p>Plans come back fast, so projects don't stall waiting on drawings.</p></li>
+          <li><b>Fast and accurate.</b><p>Quick turnarounds without cutting corners, so projects never stall waiting on drawings.</p></li>
           <li><b>Right the first time.</b><p>Fewer redraws between design, permit and build.</p></li>
-          <li><b>Take on more projects.</b><p>No software to learn, no one to hire.</p></li>
+          <li><b>Take on more projects.</b><p>I handle the drafting, so your team stays focused on design and building.</p></li>
         </ul>
       </div>
       <div class="bar mono">
@@ -293,6 +300,89 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
   function weight() { drawn.forEach(function (el) { el.style.setProperty('--sw', (1600 / parseFloat(getComputedStyle(el).fontSize)).toFixed(1)); }); }
   addEventListener('resize', weight);
   weight();
+})();
+
+// "Demo.": a wrecking ball swings in from the right, the letters tumble with a puff of dust and stay knocked askew.
+// Hover (or tap) the word to rebuild it and knock it down again. Reduced motion shows the tumbled letters only.
+(function () {
+  var demo = document.querySelector('.demo');
+  if (!demo) return;
+  var chars = [].slice.call(demo.querySelectorAll('.ch'));
+  // Resting spot of each letter after the hit: x and y in em, rotation in degrees.
+  var fall = [[-0.02, 0.05, -6], [0, 0.12, 5], [0.01, 0.09, -9], [-0.02, 0.13, 10], [0.03, 0.11, 0]];
+  function rest(i, lift) { return 'translate(' + fall[i][0] + 'em, ' + (fall[i][1] - (lift || 0)) + 'em) rotate(' + fall[i][2] + 'deg)'; }
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    chars.forEach(function (c, i) { c.style.transform = rest(i); });
+    return;
+  }
+  var busy = false, NS = 'http://www.w3.org/2000/svg';
+
+  function swing() {
+    busy = true;
+    var fs = parseFloat(getComputedStyle(demo).fontSize), w = demo.offsetWidth, h = demo.offsetHeight, r = 0.3 * fs;
+    var pivot = { x: w + 0.8 * fs, y: -2.4 * fs }, hit = { x: w + 0.7 * r, y: h * 0.5 };
+    var dx = hit.x - pivot.x, dy = hit.y - pivot.y, L = Math.hypot(dx, dy);
+    var aHit = Math.atan2(-dx, dy) * 180 / Math.PI, aOut = -70; // CSS rotation: positive swings the ball left
+    var wb = document.createElement('div');
+    wb.className = 'wb';
+    wb.style.left = pivot.x + 'px';
+    wb.style.top = pivot.y + 'px';
+    wb.innerHTML = '<svg width="1" height="1" aria-hidden="true">' +
+      '<path d="M0 0V' + (L - r) + '" stroke="#8c8c8c" stroke-width="1" fill="none"/>' +
+      '<circle cx="0" cy="' + L + '" r="' + r + '" fill="#000" stroke="#f5f5f5" stroke-width="1.5"/>' +
+      '<circle cx="0" cy="' + L + '" r="' + (r * 0.62) + '" fill="none" stroke="#8c8c8c" stroke-width="1" stroke-dasharray="3 3"/>' +
+      '<path d="M' + (-r) + ' ' + L + 'H' + r + 'M0 ' + (L - r) + 'V' + (L + r) + '" stroke="#8c8c8c" stroke-width=".75"/></svg>';
+    demo.appendChild(wb);
+    wb.animate([{ transform: 'rotate(' + aOut + 'deg)', opacity: 0 }, { opacity: 1, offset: 0.2 }, { transform: 'rotate(' + aHit + 'deg)', opacity: 1 }],
+      { duration: 750, easing: 'cubic-bezier(.45,0,.9,.6)', fill: 'forwards' }).finished.then(function () {
+      impact(fs, w, h);
+      wb.animate([{ transform: 'rotate(' + aHit + 'deg)', opacity: 1 }, { transform: 'rotate(' + (aHit - 22) + 'deg)', opacity: 1, offset: 0.45 }, { transform: 'rotate(' + aOut + 'deg)', opacity: 0 }],
+        { duration: 1100, easing: 'cubic-bezier(.2,.6,.3,1)', fill: 'forwards' }).finished.then(function () { wb.remove(); busy = false; });
+    });
+  }
+
+  function impact(fs, w, h) {
+    demo.animate([{ transform: 'none' }, { transform: 'translateX(-3px)' }, { transform: 'translateX(2px)' }, { transform: 'none' }], { duration: 220 });
+    // Hit from the right, so the letters go right to left.
+    [4, 3, 2, 1, 0].forEach(function (i, k) {
+      chars[i].animate([
+        { transform: 'none' },
+        { transform: 'translate(0, -0.04em) rotate(' + fall[i][2] * 0.3 + 'deg)', offset: 0.25 },
+        { transform: rest(i), offset: 0.8 },
+        { transform: rest(i, 0.02), offset: 0.9 },
+        { transform: rest(i) }
+      ], { duration: 650, delay: k * 70, easing: 'cubic-bezier(.5,0,.8,.4)', fill: 'forwards' });
+    });
+    for (var n = 0; n < 18; n++) {
+      var d = document.createElement('span'), atHit = n < 7, size = 2 + Math.random() * 4;
+      d.className = 'dust';
+      d.style.width = d.style.height = size + 'px';
+      var x0 = atHit ? w - Math.random() * 0.3 * fs : Math.random() * w, y0 = atHit ? h * (0.3 + Math.random() * 0.4) : h * 0.88;
+      var tx = (atHit ? 10 : -30) + (Math.random() - 0.5) * 80, ty = -10 - Math.random() * 45;
+      d.style.transform = 'translate(' + x0 + 'px,' + y0 + 'px)';
+      demo.appendChild(d);
+      d.animate([
+        { transform: 'translate(' + x0 + 'px,' + y0 + 'px)', opacity: 0.9 },
+        { transform: 'translate(' + (x0 + tx) + 'px,' + (y0 + ty) + 'px)', opacity: 0.6, offset: 0.4 },
+        { transform: 'translate(' + (x0 + tx * 1.3) + 'px,' + (y0 + ty * 0.4 + 18) + 'px)', opacity: 0 }
+      ], { duration: 900 + Math.random() * 500, delay: 40 + Math.random() * 200, easing: 'ease-out', fill: 'forwards' }).finished.then(function () { this.remove(); }.bind(d));
+    }
+  }
+
+  function again() {
+    if (busy) return;
+    busy = true;
+    Promise.all(chars.map(function (c) {
+      return c.animate([{ transform: getComputedStyle(c).transform }, { transform: 'none' }], { duration: 350, easing: 'ease-out', fill: 'forwards' }).finished;
+    })).then(function () {
+      chars.forEach(function (c) { c.getAnimations().forEach(function (a) { a.cancel(); }); });
+      setTimeout(swing, 150);
+    });
+  }
+
+  demo.addEventListener('mouseenter', again);
+  demo.addEventListener('click', again);
+  setTimeout(function () { if (!busy) swing(); }, 1700); // right after the drafted A's draw in
 })();
 
 // Full-page drafting grid: rulers fixed to the top and left edges, the grid and left ruler scroll with the page,
