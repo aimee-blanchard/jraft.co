@@ -114,6 +114,7 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
 .email { font: 700 clamp(26px, 4vw, 48px)/1.1 var(--display); font-stretch: 105%; padding-bottom: 6px; border-bottom: 2px solid var(--fg); user-select: all; overflow-wrap: anywhere; }
 .btn { display: inline-flex; align-items: center; gap: 14px; font: 500 12px/1 var(--mono); letter-spacing: .16em; text-transform: uppercase; color: var(--bg); background: var(--fg); padding: 18px 22px; transition: background .2s; }
 .btn:hover { background: #d6d6d6; }
+.btn-top { padding: 14px 18px; }
 .reply { margin: 22px 0 0; color: var(--mid); }
 
 /* footer: the bottom edge of the drawing, as a ruler */
@@ -143,7 +144,7 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
   .terms div + div { border-left: 0; border-top: 1px solid var(--line); }
   .pitch-body p { font-size: 17px; }
   .logo { width: 92px; height: 92px; margin: -10px 0 -10px -10px; }
-  .top .mono { display: none; }
+  .btn-top { padding: 12px 14px; gap: 10px; font-size: 11px; }
 }
 </style>
 </head>
@@ -154,7 +155,7 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
     <div class="wrap">
       <div class="top">
         <a class="logo" href="#top"><img src="jrafting-logo.png" alt="Jrafting LLC" width="480" height="480"></a>
-        <span class="mono">Drafting · Rendering · Permits</span>
+        <a class="btn btn-top" data-mail href="mailto:hello@jraft.co">Email me <span>→</span></a>
       </div>
       <div class="copy">
         <h1>Dr<span class="drawn">a</span>wn <span class="nw">to sc<span class="drawn">a</span>le.</span></h1>
@@ -229,7 +230,7 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
         <h2>Let's work together.</h2>
         <div class="reach">
           <span class="email">hello@jraft.co</span>
-          <a class="btn" id="mail" href="mailto:hello@jraft.co">Email me <span>→</span></a>
+          <a class="btn" data-mail href="mailto:hello@jraft.co">Email me <span>→</span></a>
         </div>
         <p class="reply">I'll get back to you the next business day.</p>
       </div>
@@ -243,7 +244,8 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
 // Pre-filled inquiry email: opens the visitor's own mail app.
 (function () {
   var body = 'Name:\nPhone number:\nProject location (state, county, city):\nWhat you\'re looking for (room remodel, plan sets, etc.):\n\n';
-  document.getElementById('mail').href = 'mailto:hello@jraft.co?subject=' + encodeURIComponent('Jrafting Inquiry') + '&body=' + encodeURIComponent(body);
+  var href = 'mailto:hello@jraft.co?subject=' + encodeURIComponent('Jrafting Inquiry') + '&body=' + encodeURIComponent(body);
+  document.querySelectorAll('[data-mail]').forEach(function (a) { a.href = href; });
 })();
 
 // Draw each .drawn "A" as construction lines that overshoot their corners, traced from Archivo's A
