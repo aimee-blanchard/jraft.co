@@ -108,7 +108,7 @@ main > section + section { border-top: 1px solid var(--line); }
 .samples img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border: 1px solid var(--line); background: #0b0b0b; }
 .samples figcaption { display: flex; justify-content: space-between; gap: 12px; margin-top: 10px; }
 
-/* how it works: four numbered steps, then turnaround and first-project rate, then a short about */
+/* how it works: four numbered steps, then the first-project rate. .about is the short intro under the closing headline */
 .steps { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--line); background: rgba(0,0,0,.55); }
 .steps li { padding: 28px 24px 32px; min-width: 0; }
 .steps li + li { border-left: 1px solid var(--line); }
@@ -120,8 +120,7 @@ main > section + section { border-top: 1px solid var(--line); }
 .rate { display: flex; align-items: baseline; gap: 10px 24px; flex-wrap: wrap; margin: 0; padding: 20px 24px; border: 1px solid var(--line); border-top: 0; background: rgba(0,0,0,.55); color: #c4c4c4; font-size: 17px; }
 .rate strong { color: var(--fg); font: 700 20px/1 var(--display); font-stretch: 105%; }
 ol.steps { list-style: none; margin: 0; padding: 0; }
-.about { display: grid; grid-template-columns: 220px 1fr; gap: 12px 24px; margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--line); }
-.about p { margin: 0; max-width: 60ch; font-size: 19px; line-height: 1.6; color: #d6d6d6; }
+.about { margin: 28px 0 0; max-width: 60ch; font-size: 19px; line-height: 1.6; color: #d6d6d6; }
 
 /* contact */
 h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; text-transform: uppercase; margin: 0; letter-spacing: -.01em; text-wrap: balance; }
@@ -142,7 +141,6 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
   .gains li + li { padding-left: 0; border-left: 0; border-top: 1px solid var(--line); margin-top: 24px; }
   .sh { grid-template-columns: 1fr; gap: 10px; }
   .samples { grid-template-columns: 1fr 1fr; }
-  .about { grid-template-columns: 1fr; }
   .steps { grid-template-columns: 1fr 1fr; }
   .steps li:nth-child(3) { border-left: 0; }
   .steps li:nth-child(n+3) { border-top: 1px solid var(--line); }
@@ -150,7 +148,7 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
 @media (max-width: 560px) {
   .wrap { padding-left: max(calc(var(--rule) + 18px), env(safe-area-inset-left, 0px)); padding-right: max(18px, env(safe-area-inset-right, 0px)); }
   .samples { grid-template-columns: 1fr; }
-  .about p { font-size: 17px; }
+  .about { font-size: 17px; }
   .pitch-body .lead, .hero-sub { font-size: 19px; }
   .steps { grid-template-columns: 1fr; }
   .steps .top-row span + span { display: none; } /* the → arrows only make sense side by side */
@@ -234,16 +232,13 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
           <li><div class="top-row"><span class="mono">Step</span></div><span class="n">04</span><h3>Deliverables &amp; permitting</h3><p>Construction-ready drawings delivered, and I handle the permit process through approval.</p></li>
         </ol>
         <p class="rate"><span class="mono">First project</span><span><strong>$70/hr</strong> introductory rate, up to 10 hours.</span></p>
-        <div class="about">
-          <span class="mono">About</span>
-          <p>I'm Josh, the draftsman behind Jrafting LLC. You work directly with me from your first sketch to the finished set, and every drawing is held to the same standard: accurate, organized and to scale.</p>
-        </div>
       </div>
     </section>
 
     <section class="contact" id="contact">
       <div class="wrap">
         <h2>Let's work together.</h2>
+        <p class="about">I'm Josh, the draftsman behind Jrafting LLC. You work directly with me from your first sketch to the finished set, and every drawing is held to the same standard: accurate, organized and to scale.</p>
         <div class="reach">
           <span class="email">hello@jraft.co</span>
           <a class="btn" data-mail href="mailto:hello@jraft.co">Email me <span>→</span></a>
