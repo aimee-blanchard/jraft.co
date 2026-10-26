@@ -45,7 +45,7 @@ a { color: inherit; text-decoration: none; }
 
 /* hero */
 .hero { border-bottom: 1px solid var(--line); }
-.hero .wrap { display: grid; grid-template-rows: auto 1fr auto; min-height: min(514px, calc(44vh + 164px)); padding-top: calc(var(--rule) + 22px); }
+.hero .wrap { display: grid; grid-template-rows: auto 1fr auto; min-height: min(609px, calc(44vh + 259px)); padding-top: calc(var(--rule) + 22px); }
 .top { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
 .logo { display: block; width: 116px; height: 116px; margin: -12px 0 -12px -12px; }
 /* The logo file has a black background; "screen" drops the black so the grid shows through */
@@ -53,6 +53,7 @@ a { color: inherit; text-decoration: none; }
 .copy { align-self: end; padding-block: 72px 40px; }
 h1 { font: 850 clamp(40px, 12.5vw, 110px)/.9 var(--display); font-stretch: 112%; letter-spacing: -.02em; text-transform: uppercase; margin: 0; }
 h1 .nw { white-space: nowrap; }
+.hero-sub { margin: 28px 0 0; max-width: 44ch; font-size: clamp(18px, 1.9vw, 23px); line-height: 1.45; color: #cfcfcf; text-wrap: balance; }
 /* "Drawn to scale." is 10.63em wide: fill the content column on one line */
 @media (min-width: 900px) { h1 { font-size: calc((min(100vw, 1240px) - 86px) / 10.9); } }
 .bar { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; border-top: 1px solid var(--line); padding-block: 14px; }
@@ -90,6 +91,23 @@ h1 .nw { white-space: nowrap; }
 .row p { margin: 0 0 14px; color: #c4c4c4; max-width: 52ch; }
 .row .tags { color: var(--dim); }
 
+/* what to expect: four numbered steps, then the turnaround and first-project rate */
+.expect { padding-block: 104px 0; }
+.sh { display: grid; grid-template-columns: 220px 1fr auto; gap: 24px; align-items: end; margin-bottom: 48px; }
+.steps { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--line); background: rgba(0,0,0,.55); }
+.steps li { padding: 28px 24px 32px; min-width: 0; }
+.steps li + li { border-left: 1px solid var(--line); }
+.steps .top-row { display: flex; justify-content: space-between; }
+.steps .n { display: block; font: 800 44px/1 var(--display); font-stretch: 115%; margin: 18px 0 16px; }
+.steps h3 { font: 700 21px/1.15 var(--display); font-stretch: 105%; margin: 0 0 8px; }
+.steps p { margin: 0; color: #bdbdbd; font-size: 15px; }
+.terms { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--line); border-top: 0; background: rgba(0,0,0,.55); }
+.terms div { padding: 24px; min-width: 0; }
+.terms div + div { border-left: 1px solid var(--line); }
+.terms strong { display: block; font: 800 clamp(30px, 4vw, 48px)/1 var(--display); font-stretch: 112%; margin: 12px 0 8px; }
+.terms p { margin: 0; color: var(--mid); font-size: 15px; }
+ol.steps { list-style: none; margin: 0; padding: 0; }
+
 /* contact */
 .contact { padding-block: 104px 120px; }
 h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; text-transform: uppercase; margin: 0; letter-spacing: -.01em; text-wrap: balance; }
@@ -108,13 +126,22 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
   .gains { grid-template-columns: 1fr; }
   .gains li + li { padding-left: 0; border-left: 0; border-top: 1px solid var(--line); margin-top: 24px; }
   .services { padding-block: 56px 72px; }
+  .expect { padding-top: 80px; }
+  .sh { grid-template-columns: 1fr; gap: 10px; }
+  .steps { grid-template-columns: 1fr 1fr; }
+  .steps li:nth-child(3) { border-left: 0; }
+  .steps li:nth-child(n+3) { border-top: 1px solid var(--line); }
   .contact { padding-block: 80px 96px; }
 }
 @media (max-width: 560px) {
   .wrap { padding-left: max(calc(var(--rule) + 18px), env(safe-area-inset-left, 0px)); padding-right: max(18px, env(safe-area-inset-right, 0px)); }
-  .hero .wrap { min-height: min(473px, calc(40vh + 163px)); }
+  .hero .wrap { min-height: min(579px, calc(40vh + 269px)); }
   .pitch { padding-block: calc(56px + min(147px, 18vh)) 72px; }
   .pitch-body .lead, .sub { font-size: 19px; }
+  .steps, .terms { grid-template-columns: 1fr; }
+  .steps .top-row span + span { display: none; } /* the → arrows only make sense side by side */
+  .steps li + li { border-left: 0; border-top: 1px solid var(--line); }
+  .terms div + div { border-left: 0; border-top: 1px solid var(--line); }
   .pitch-body p { font-size: 17px; }
   .logo { width: 92px; height: 92px; margin: -10px 0 -10px -10px; }
   .top .mono { display: none; }
@@ -132,6 +159,7 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
       </div>
       <div class="copy">
         <h1>Dr<span class="drawn">a</span>wn <span class="nw">to sc<span class="drawn">a</span>le.</span></h1>
+        <p class="hero-sub">Construction drawings, renderings and permit sets for residential designers and builders.</p>
       </div>
       <div class="bar mono">
         <span>Scale ¼" = 1'-0"</span>
@@ -177,6 +205,22 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
             <h3>Permit services</h3>
             <div><p>Permit-ready sets, application paperwork and city comments, handled until the permit is issued.</p><span class="mono tags">Permit sets · Applications · Revisions</span></div>
           </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="expect" aria-labelledby="expect-title">
+      <div class="wrap">
+        <div class="sh"><span class="mono">What to expect</span><h2 id="expect-title">Sketch to set in 5 days</h2><span class="mono">4 steps</span></div>
+        <ol class="steps">
+          <li><div class="top-row"><span class="mono">Step</span><span class="mono" aria-hidden="true">→</span></div><span class="n">01</span><h3>Send your sketches</h3><p>Scans, photos, redlines or design files. Whatever you have is a fine place to start.</p></li>
+          <li><div class="top-row"><span class="mono">Step</span><span class="mono" aria-hidden="true">→</span></div><span class="n">02</span><h3>Get a quote</h3><p>I review the scope and send you a price before any drafting starts.</p></li>
+          <li><div class="top-row"><span class="mono">Step</span><span class="mono" aria-hidden="true">→</span></div><span class="n">03</span><h3>Review drafts</h3><p>Mark up the drawings. I revise them until they're right.</p></li>
+          <li><div class="top-row"><span class="mono">Step</span></div><span class="n">04</span><h3>Receive your set</h3><p>Clean, to-scale plans, ready for construction or your permit process.</p></li>
+        </ol>
+        <div class="terms">
+          <div><span class="mono">Turnaround</span><strong>5 days</strong><p>From your sketches to a finished set.</p></div>
+          <div><span class="mono">First project</span><strong>$70/hr</strong><p>An introductory rate for your first project with me.</p></div>
         </div>
       </div>
     </section>
