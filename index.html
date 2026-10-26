@@ -4,14 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Jrafting LLC · Drafting, Rendering & Permits</title>
-<meta name="description" content="Jrafting LLC prepares construction drawings, renderings and permit sets. Email hello@jraft.co to start a project.">
+<meta name="description" content="Professional drafting for design firms, architects and general contractors. Construction drawings, renderings and permit sets from Jrafting LLC.">
 <meta name="theme-color" content="#000000">
 <link rel="icon" type="image/png" sizes="64x64" href="favicon.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://jraft.co/">
 <meta property="og:title" content="Jrafting LLC">
-<meta property="og:description" content="Drafting, rendering and permit services.">
+<meta property="og:description" content="Professional drafting for design firms, architects and general contractors.">
 <meta property="og:image" content="https://jraft.co/jrafting-logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -45,7 +45,7 @@ a { color: inherit; text-decoration: none; }
 
 /* hero */
 .hero { border-bottom: 1px solid var(--line); }
-.hero .wrap { display: grid; grid-template-rows: auto 1fr auto; min-height: min(700px, 88vh); padding-top: calc(var(--rule) + 22px); }
+.hero .wrap { display: grid; grid-template-rows: auto 1fr auto; min-height: min(514px, calc(44vh + 164px)); padding-top: calc(var(--rule) + 22px); }
 .top { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
 .logo { display: block; width: 116px; height: 116px; margin: -12px 0 -12px -12px; }
 /* The logo file has a black background; "screen" drops the black so the grid shows through */
@@ -68,8 +68,20 @@ h1 .nw { white-space: nowrap; }
 @keyframes fade { to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .drawn .ln { animation: none; stroke-dashoffset: 0; stroke-dasharray: none; } .drawn .guide, .drawn .pt { animation: none; opacity: 1; } }
 
+/* pitch: who it's for and why. Its extra top padding is the space taken out of the hero above "Drawn to scale." */
+.pitch { padding-block: calc(72px + min(186px, 22vh)) 96px; }
+.statement { max-width: 15ch; margin-top: 18px; }
+.pitch-body { display: grid; grid-template-columns: 1.15fr 1fr; gap: 24px 56px; margin-top: 48px; }
+.pitch-body p { margin: 0; color: #c4c4c4; font-size: 18px; max-width: 54ch; }
+.pitch-body .lead { color: var(--fg); font-size: 21px; line-height: 1.55; }
+.gains { list-style: none; margin: 64px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--line); }
+.gains li { padding: 24px 24px 0 0; min-width: 0; }
+.gains li + li { padding-left: 24px; border-left: 1px solid var(--line); }
+.gains b { display: block; font: 700 22px/1.15 var(--display); font-stretch: 105%; margin: 12px 0 8px; }
+.gains p { margin: 0; color: #bdbdbd; font-size: 15px; }
+
 /* services */
-.services { padding-block: 72px 96px; border-bottom: 1px solid var(--line); }
+.services { padding-block: 72px 96px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 .index { border-top: 1px solid var(--line); }
 .row { display: grid; grid-template-columns: 220px 1fr 1.3fr; gap: 24px; padding-block: 34px; border-bottom: 1px solid var(--line); transition: background .3s; }
 .row:hover { background: rgba(255,255,255,.035); }
@@ -91,12 +103,18 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
 
 @media (max-width: 900px) {
   .row { grid-template-columns: 1fr; gap: 10px; }
+  .pitch-body { grid-template-columns: 1fr; }
+  .gains { grid-template-columns: 1fr; }
+  .gains li + li { padding-left: 0; border-left: 0; border-top: 1px solid var(--line); margin-top: 24px; }
   .services { padding-block: 56px 72px; }
   .contact { padding-block: 80px 96px; }
 }
 @media (max-width: 560px) {
   .wrap { padding-left: max(calc(var(--rule) + 18px), env(safe-area-inset-left, 0px)); padding-right: max(18px, env(safe-area-inset-right, 0px)); }
-  .hero .wrap { min-height: min(620px, 80vh); }
+  .hero .wrap { min-height: min(473px, calc(40vh + 163px)); }
+  .pitch { padding-block: calc(56px + min(147px, 18vh)) 72px; }
+  .pitch-body .lead { font-size: 19px; }
+  .pitch-body p { font-size: 17px; }
   .logo { width: 92px; height: 92px; margin: -10px 0 -10px -10px; }
   .top .mono { display: none; }
 }
@@ -123,23 +141,39 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
   </header>
 
   <main>
+    <section class="pitch" aria-label="Who we work with">
+      <div class="wrap">
+        <span class="mono">For design firms · Architects · General contractors</span>
+        <h2 class="statement">When plans are accurate, you move faster.</h2>
+        <div class="pitch-body">
+          <p class="lead">On most projects, the person doing the design also ends up drafting the plans. They fight with CAD software through trial and error to show the client, then an architect or engineer redraws it all into a permit or construction set.</p>
+          <p>Take that work off your plate. Josh knows CAD inside and out, so your plans come back faster, cleaner and accurate the first time, ready for permit and ready for the crew to build.</p>
+        </div>
+        <ul class="gains">
+          <li><span class="mono">Speed</span><b>Faster timelines</b><p>Accurate drawings mean fewer redraws between design, permit and build.</p></li>
+          <li><span class="mono">Focus</span><b>No CAD learning curve</b><p>Your team keeps designing. We handle the software.</p></li>
+          <li><span class="mono">Capacity</span><b>More projects</b><p>Take on more work without adding drafting to anyone's day.</p></li>
+        </ul>
+      </div>
+    </section>
+
     <section class="services" aria-label="Services">
       <div class="wrap">
         <div class="index">
           <div class="row">
             <span class="mono">A-101 — Drafting</span>
             <h3>Construction drawings</h3>
-            <div><p>Floor plans, elevations, sections and site plans, drawn to scale and ready to build from.</p><span class="mono tags">Plans · Elevations · Sections · Site</span></div>
+            <div><p>Send us sketches, redlines or design files. We turn them into clean, to-scale plans, elevations, sections and site plans.</p><span class="mono tags">Plans · Elevations · Sections · Site</span></div>
           </div>
           <div class="row">
             <span class="mono">3D-01 — Rendering</span>
             <h3>Renderings</h3>
-            <div><p>Exterior and interior views that show clients, lenders and neighbors the finished project.</p><span class="mono tags">Exterior · Interior · Line & photoreal</span></div>
+            <div><p>Client-ready views of your design, so your client can see the finished project and sign off sooner.</p><span class="mono tags">Exterior · Interior · Line & photoreal</span></div>
           </div>
           <div class="row">
             <span class="mono">G-001 — Permits</span>
             <h3>Permit services</h3>
-            <div><p>Complete permit sets, application paperwork and city revisions, handled until the permit is issued.</p><span class="mono tags">Permit sets · Applications · Revisions</span></div>
+            <div><p>Permit-ready sets, application paperwork and city comments, handled until the permit is issued.</p><span class="mono tags">Permit sets · Applications · Revisions</span></div>
           </div>
         </div>
       </div>
