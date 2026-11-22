@@ -74,7 +74,7 @@ h1 { font-size: min(96px, calc((100vw - 58px) / 7.8)); }
 @keyframes fade { to { opacity: 1; } }
 
 /* "Demo.": a line-drawn wrecking ball knocks the letters askew; they rest tumbled but readable */
-.demo { position: relative; display: inline-block; white-space: nowrap; cursor: pointer; isolation: isolate; }
+.demo { position: relative; display: inline-block; white-space: nowrap; cursor: pointer; }
 .demo .ch { display: inline-block; transform-origin: 50% 85%; }
 .wb { position: absolute; left: 0; top: 0; width: 0; height: 0; pointer-events: none; transform-origin: 0 0; }
 .wb svg { position: absolute; left: 0; top: 0; overflow: visible; }
@@ -419,43 +419,94 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
 
   // Bricks get a push away from the hit (stronger and sooner the closer they are), fall under gravity,
   // bounce on the ground line, settle, then fade out.
+  // On impact every piece breaks up: bricks into two to four chunks (some split again lengthwise), and the
+  // window frames, sills and cap stones into short bars, so the rubble reads as broken material.
+  function shatter() {
+    var g = geo, frags = [], bar = Math.max(1.5, 0.018 * g.fs);
+    function add(cls, x, y, w, h) {
+      if (w < 1 || h < 1) return;
+      var el = document.createElement('span');
+      el.className = 'pc ' + cls;
+      el.style.width = w + 'px';
+      el.style.height = h + 'px';
+      el.style.left = x + 'px';
+      el.style.top = y + 'px';
+      wall.appendChild(el);
+      frags.push({ el: el, x: x, y: y, w: w, h: h });
+    }
+    function chop(cls, x, y, w, h, maxLen) {
+      var n = Math.max(1, Math.round(w / maxLen + Math.random())), cuts = [0];
+      for (var i = 1; i < n; i++) cuts.push(w * (i / n + (Math.random() - 0.5) * 0.25 / n));
+      cuts.push(w);
+      for (var j = 0; j < n; j++) add(cls, x + cuts[j], y, cuts[j + 1] - cuts[j], h);
+    }
+    pieces.forEach(function (p) {
+      var cls = p.el.className.replace('pc ', '');
+      p.el.remove();
+      if (cls === 'brick') {
+        var n = 2 + Math.floor(Math.random() * 2), x = p.x;
+        for (var i = 0; i < n; i++) {
+          var w = i === n - 1 ? p.x + p.w - x : p.w / n * (0.7 + Math.random() * 0.6);
+          if (Math.random() < 0.2) { add('brick', x, p.y, w, p.h / 2); add('brick', x, p.y + p.h / 2, w, p.h / 2); }
+          else add('brick', x, p.y, w, p.h);
+          x += w;
+        }
+      } else if (cls === 'win') {
+        var cx = p.x + p.w / 2, cy = p.y + p.h / 2;
+        chop('sill', p.x, p.y, p.w, bar, p.w / 2.5);
+        chop('sill', p.x, p.y + p.h - bar, p.w, bar, p.w / 2.5);
+        chop('sill', p.x, cy - bar / 2, p.w, 1, p.w / 3);
+        [p.x, p.x + p.w - bar, cx - 0.5].forEach(function (vx, k) {
+          var t = k === 2 ? 1 : bar, h1 = p.h * (0.35 + Math.random() * 0.3);
+          add('sill', vx, p.y, t, h1);
+          add('sill', vx, p.y + h1, t, p.h - h1);
+        });
+      } else {
+        chop(cls, p.x, p.y, p.w, p.h, g.bh * 1.1);
+      }
+    });
+    pieces = frags;
+  }
+
   function collapse(hit) {
+    shatter();
     var g = geo, fsk = g.fs / 100, grav = 2600 * fsk, span = g.width * 1.2, t0 = performance.now(), live = pieces.slice();
     live.forEach(function (p) {
       var cx = p.x + p.w / 2, cy = p.y + p.h / 2, d = Math.hypot(cx - hit.x, cy - hit.y), k = Math.max(0, 1 - d / span);
       p.delay = d / (g.fs * 9);
       p.vx = -(250 + Math.random() * 350) * (0.3 + k) * fsk;
       p.vy = (-(120 + Math.random() * 260) * k - 40) * fsk;
-      p.vr = (Math.random() - 0.5) * (p.w > g.bw * 1.6 ? 160 : 620);
+      p.vr = (Math.random() - 0.5) * (p.w > g.bw ? 260 : 760);
+      p.rest = Math.random() * 0.045 * g.fs;
       p.dx = 0; p.dy = 0; p.rot = 0; p.bounces = 0; p.done = false;
     });
-    var last = t0;
+    // Advance in fixed 1/120 s steps to match real elapsed time, so every piece reaches the ground
+    // even when the browser hands out few frames (a slow phone, a background tab).
+    var H = 1 / 120, simT = 0, minX = g.left - 0.25 * g.fs;
+    function advance(p) {
+      if (p.done || simT < p.delay) return;
+      p.vy += grav * H;
+      p.dx += p.vx * H; p.dy += p.vy * H; p.rot += p.vr * H;
+      // Keep the rubble near the word instead of sliding off toward the page edge.
+      if (p.x + p.dx < minX) { p.dx = minX - p.x; p.vx = 0; }
+      var floor = g.ground - p.rest - (p.y + p.h);
+      if (p.dy > floor) {
+        p.dy = floor;
+        p.vy *= -0.28; p.vx *= 0.55; p.vr *= 0.45;
+        if (++p.bounces > 2 || Math.abs(p.vy) < 40 * fsk) { p.vy = 0; p.vx = 0; p.vr = 0; p.done = true; }
+      }
+    }
     function step(now) {
-      var dt = Math.min(0.033, (now - last) / 1000), t = (now - t0) / 1000, moving = false;
-      last = now;
+      var t = Math.min((now - t0) / 1000, 4);
+      while (simT < t) { live.forEach(advance); simT += H; }
+      var moving = false;
       live.forEach(function (p) {
-        if (p.done) return;
-        if (t < p.delay) { moving = true; return; }
-        p.vy += grav * dt;
-        p.dx += p.vx * dt; p.dy += p.vy * dt; p.rot += p.vr * dt;
-        // Keep the rubble near the word instead of sliding off toward the page edge.
-        var minX = g.left - 0.25 * g.fs;
-        if (p.x + p.dx < minX) { p.dx = minX - p.x; p.vx = 0; }
-        var floor = g.ground - (p.y + p.h);
-        if (p.dy > floor) {
-          p.dy = floor;
-          p.vy *= -0.28; p.vx *= 0.55; p.vr *= 0.45;
-          if (++p.bounces > 2 || Math.abs(p.vy) < 40 * fsk) { p.vy = 0; p.vx = 0; p.vr = 0; p.done = true; }
-        }
+        if (simT >= 4 && !p.done) { p.dy = g.ground - p.rest - (p.y + p.h); p.done = true; } // safety net: settle anything left
         p.el.style.transform = 'translate(' + p.dx.toFixed(1) + 'px,' + p.dy.toFixed(1) + 'px) rotate(' + p.rot.toFixed(1) + 'deg)';
         if (!p.done) moving = true;
       });
-      if (moving && t < 2.2) requestAnimationFrame(step);
-      else {
-        // The rubble stays where it landed, tucked behind the knocked-over letters.
-        wall.style.zIndex = -1;
-        busy = false;
-      }
+      if (moving) requestAnimationFrame(step);
+      else busy = false; // the rubble stays where it landed, piled in front of the knocked-over letters
     }
     requestAnimationFrame(step);
   }
