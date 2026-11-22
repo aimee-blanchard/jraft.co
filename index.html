@@ -339,17 +339,21 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
     wall.className = 'wall';
     wall.setAttribute('aria-hidden', 'true');
     demo.appendChild(wall);
-    var winW = g.bh * 3, winH = winW, winTop = g.top + g.bh * 1.5; // square openings
+    // Square openings three courses tall (rows 2-4), with bricks cut flush to their sides.
+    var winRow = 2, winRows = 3, winH = g.bh * winRows, winW = winH, winTop = g.top + winRow * g.bh;
     var wins = [g.left + g.width * 0.26 - winW / 2, g.left + g.width * 0.72 - winW / 2];
-    function inWindow(x, y, w, h) {
-      return wins.some(function (wx) { return x < wx + winW && x + w > wx && y < winTop + winH && y + h > winTop; });
-    }
     for (var r = 0; r < g.rows; r++) {
-      var y = g.top + r * g.bh, x = g.left - (r % 2 ? g.bw / 2 : 0);
+      var y = g.top + r * g.bh, x = g.left - (r % 2 ? g.bw / 2 : 0), cut = r >= winRow && r < winRow + winRows;
       for (; x < g.left + g.width; x += g.bw) {
-        var bx = Math.max(x, g.left), bwid = Math.min(x + g.bw, g.left + g.width) - bx;
-        if (bwid < 3 || inWindow(bx, y, bwid, g.bh)) continue;
-        piece('brick', bx, y, bwid, g.bh).dataset.row = r;
+        var segs = [[Math.max(x, g.left), Math.min(x + g.bw, g.left + g.width)]];
+        if (cut) wins.forEach(function (wx) {
+          segs = segs.reduce(function (out, sg) {
+            if (sg[1] <= wx || sg[0] >= wx + winW) out.push(sg);
+            else { if (sg[0] < wx) out.push([sg[0], wx]); if (sg[1] > wx + winW) out.push([wx + winW, sg[1]]); }
+            return out;
+          }, []);
+        });
+        segs.forEach(function (sg) { if (sg[1] - sg[0] >= 2) piece('brick', sg[0], y, sg[1] - sg[0], g.bh).dataset.row = r; });
       }
     }
     wins.forEach(function (wx) {
