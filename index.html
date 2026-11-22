@@ -74,7 +74,7 @@ h1 { font-size: min(96px, calc((100vw - 58px) / 7.8)); }
 @keyframes fade { to { opacity: 1; } }
 
 /* "Demo.": a line-drawn wrecking ball knocks the letters askew; they rest tumbled but readable */
-.demo { position: relative; display: inline-block; white-space: nowrap; cursor: pointer; }
+.demo { position: relative; display: inline-block; white-space: nowrap; cursor: pointer; isolation: isolate; }
 .demo .ch { display: inline-block; transform-origin: 50% 85%; }
 .wb { position: absolute; left: 0; top: 0; width: 0; height: 0; pointer-events: none; transform-origin: 0 0; }
 .wb svg { position: absolute; left: 0; top: 0; overflow: visible; }
@@ -292,8 +292,8 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
   weight();
 })();
 
-// "Demo.": a line-drawn brick wall with two windows covers the word. A wrecking ball swings in, the bricks
-// tumble to the ground as rubble and fade, and the letters behind are left knocked askew. It runs alongside
+// "Demo.": a line-drawn brick wall with two windows covers the word. A wrecking ball on a chain swings in, the
+// bricks tumble to the ground and stay there as rubble, and the letters behind are left knocked askew. It runs alongside
 // the drafted A's so both finish together. Hover (or tap) the word to rebuild the wall and knock it down again.
 // Reduced motion shows the tumbled letters only, with no wall.
 (function () {
@@ -379,11 +379,17 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
     wb.className = 'wb';
     wb.style.left = pivot.x + 'px';
     wb.style.top = pivot.y + 'px';
-    wb.innerHTML = '<svg width="1" height="1" aria-hidden="true">' +
-      '<path d="M0 0V' + (L - r) + '" stroke="#8c8c8c" stroke-width="1" fill="none"/>' +
-      '<circle cx="0" cy="' + L + '" r="' + r + '" fill="#000" stroke="#f5f5f5" stroke-width="1.5"/>' +
-      '<circle cx="0" cy="' + L + '" r="' + (r * 0.62) + '" fill="none" stroke="#8c8c8c" stroke-width="1" stroke-dasharray="3 3"/>' +
-      '<path d="M' + (-r) + ' ' + L + 'H' + r + 'M0 ' + (L - r) + 'V' + (L + r) + '" stroke="#8c8c8c" stroke-width=".75"/></svg>';
+    // Chain: links alternate face-on (an open oval) and edge-on (a short bar), overlapping like real links.
+    var linkL = Math.max(7, 0.075 * g.fs), linkW = linkL * 0.55, chainEnd = L - r - linkL * 0.9, links = '';
+    for (var y = 0, k = 0; y < chainEnd; y += linkL * 0.72, k++) {
+      links += k % 2
+        ? '<rect x="-0.9" y="' + y.toFixed(1) + '" width="1.8" height="' + linkL.toFixed(1) + '" rx="0.9" fill="#d9d9d9"/>'
+        : '<rect x="' + (-linkW / 2).toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + linkW.toFixed(1) + '" height="' + linkL.toFixed(1) + '" rx="' + (linkW / 2).toFixed(1) + '" fill="none" stroke="#d9d9d9" stroke-width="1.4"/>';
+    }
+    var sh = linkL * 0.9;
+    wb.innerHTML = '<svg width="1" height="1" aria-hidden="true">' + links +
+      '<path d="M' + (-sh * 0.45) + ' ' + (L - r + 1) + 'V' + (L - r - sh * 0.5) + 'A' + (sh * 0.45) + ' ' + (sh * 0.45) + ' 0 0 1 ' + (sh * 0.45) + ' ' + (L - r - sh * 0.5) + 'V' + (L - r + 1) + '" fill="none" stroke="#f5f5f5" stroke-width="2"/>' +
+      '<circle cx="0" cy="' + L + '" r="' + r + '" fill="#f5f5f5"/></svg>';
     demo.appendChild(wb);
     return { el: wb, hit: hit, aHit: Math.atan2(-dx, dy) * 180 / Math.PI, out: -70 }; // CSS rotation: positive swings the ball left
   }
@@ -428,6 +434,9 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
         if (t < p.delay) { moving = true; return; }
         p.vy += grav * dt;
         p.dx += p.vx * dt; p.dy += p.vy * dt; p.rot += p.vr * dt;
+        // Keep the rubble near the word instead of sliding off toward the page edge.
+        var minX = g.left - 0.25 * g.fs;
+        if (p.x + p.dx < minX) { p.dx = minX - p.x; p.vx = 0; }
         var floor = g.ground - (p.y + p.h);
         if (p.dy > floor) {
           p.dy = floor;
@@ -439,11 +448,9 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
       });
       if (moving && t < 2.2) requestAnimationFrame(step);
       else {
-        var w = wall;
-        w.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 450, easing: 'ease-in', fill: 'forwards' }).finished.then(function () {
-          if (wall === w) { w.remove(); wall = null; }
-          busy = false;
-        });
+        // The rubble stays where it landed, tucked behind the knocked-over letters.
+        wall.style.zIndex = -1;
+        busy = false;
       }
     }
     requestAnimationFrame(step);
@@ -501,7 +508,8 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
   demo.addEventListener('click', again);
   addEventListener('resize', function () {
     if (busy) return;
-    if (wall) build(false);
+    if (wall && !ball) build(false);
+    else if (wall) { wall.remove(); wall = null; } // rubble was laid out for the old size
     if (ball) { ball.el.remove(); geo = measure(); ball = makeBall(); ball.el.style.transform = 'rotate(0deg)'; }
   });
   // The wall is up from the start; the ball sets off with the drafted A's so they finish together.
