@@ -171,7 +171,7 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
       </div>
       <div class="copy">
         <span class="mono eyebrow">For design firms · Architects · General contractors</span>
-        <h1><span class="l">Stop redr<span class="drawn">a</span>wing.</span> <span class="l">St<span class="drawn">a</span>rt <span class="demo" title="Knock it down again"><span class="ch">d</span><span class="ch">e</span><span class="ch">m</span><span class="ch">o</span><span class="ch">.</span></span></span></h1>
+        <h1><span class="l">Stop redr<span class="drawn">a</span>w<span class="pin">i</span>ng.</span> <span class="l">St<span class="drawn">a</span>rt <span class="demo" title="Knock it down again"><span class="ch">d</span><span class="ch">e</span><span class="ch">m</span><span class="ch">o</span><span class="ch">.</span></span></span></h1>
         <div class="sub-row">
           <p class="hero-sub">Residential drafting for designers and general contractors. Send your ideas, get back construction-ready plans.</p>
           <p class="callout"><b>Right the first time.</b> Accurate drawings mean fewer redraws.</p>
@@ -293,7 +293,8 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
 })();
 
 // "Demo.": a line-drawn brick wall with two windows covers the word. A wrecking ball on a chain swings in, the
-// bricks tumble to the ground and stay there as rubble, and the letters behind are left knocked askew. It runs alongside
+// wall shatters and falls, the rubble settles into solid rocks at the foot of the word, the letters are left
+// knocked askew, and the ball comes to rest beside the O. It runs alongside
 // the drafted A's so both finish together. Hover (or tap) the word to rebuild the wall and knock it down again.
 // Reduced motion shows the tumbled letters only, with no wall.
 (function () {
@@ -307,7 +308,7 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
     chars.forEach(function (c, i) { c.style.transform = rest(i); });
     return;
   }
-  var busy = false, wall = null, pieces = [], geo = null, ball = null;
+  var busy = false, wall = null, pieces = [], geo = null, ball = null, rocks = null;
 
   // Wall geometry in px, measured from the word: it covers the caps down to the ground line.
   function measure() {
@@ -332,6 +333,7 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
   // Running-bond bricks with two window openings (over D-E and M-O), plus a cap course along the top.
   function build(animateIn) {
     if (wall) wall.remove();
+    if (rocks) { rocks.remove(); rocks = null; }
     pieces = [];
     geo = measure();
     var g = geo;
@@ -373,12 +375,19 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
     }
   }
 
-  // The ball hangs from a pivot above and right of the wall; it hits the wall's right side.
+  // The chain hangs from just above the I in "redrawing", and the ball comes to rest slanted, right beside
+  // the O. It hits the wall where that swing crosses the wall's right side.
   function makeBall() {
-    var g = geo, r = 0.3 * g.fs, h = demo.offsetHeight;
-    var wallRight = g.left + g.width;
-    var pivot = { x: wallRight + 0.8 * g.fs, y: -2.4 * g.fs }, hit = { x: wallRight + 0.7 * r, y: h * 0.5 };
-    var dx = hit.x - pivot.x, dy = hit.y - pivot.y, L = Math.hypot(dx, dy);
+    var g = geo, r = 0.3 * g.fs, d = demo.getBoundingClientRect(), pin = document.querySelector('h1 .pin').getBoundingClientRect();
+    var o = chars[3];
+    var pivot = { x: pin.left + pin.width / 2 - d.left, y: pin.top - d.top + 0.02 * g.fs };
+    var rest = { x: o.offsetLeft + o.offsetWidth + r + 0.06 * g.fs, y: 0.09 * g.fs + r }; // clear of the O even once it tips over
+    var L = Math.hypot(rest.x - pivot.x, rest.y - pivot.y);
+    var deg = function (x, y) { return Math.atan2(-(x - pivot.x), y - pivot.y) * 180 / Math.PI; }; // CSS rotation: positive swings the ball left
+    var aRest = deg(rest.x, rest.y), wallRight = g.left + g.width, hx = wallRight + 0.7 * r, hit;
+    if (Math.abs(hx - pivot.x) < L) hit = { x: hx, y: pivot.y + Math.sqrt(L * L - (hx - pivot.x) * (hx - pivot.x)) };
+    else hit = { x: rest.x + r, y: rest.y };
+    var aHit = deg(hit.x, hit.y);
     var wb = document.createElement('div');
     wb.className = 'wb';
     wb.style.left = pivot.x + 'px';
@@ -395,24 +404,24 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
       '<path d="M' + (-sh * 0.45) + ' ' + (L - r + 1) + 'V' + (L - r - sh * 0.5) + 'A' + (sh * 0.45) + ' ' + (sh * 0.45) + ' 0 0 1 ' + (sh * 0.45) + ' ' + (L - r - sh * 0.5) + 'V' + (L - r + 1) + '" fill="none" stroke="#f5f5f5" stroke-width="2"/>' +
       '<circle cx="0" cy="' + L + '" r="' + r + '" fill="#f5f5f5"/></svg>';
     demo.appendChild(wb);
-    return { el: wb, hit: hit, aHit: Math.atan2(-dx, dy) * 180 / Math.PI, out: -70 }; // CSS rotation: positive swings the ball left
+    return { el: wb, hit: hit, aHit: aHit, aRest: aRest, out: aHit - 70 };
   }
 
   function swing() {
     busy = true;
-    var b = makeBall(), wb = b.el, hit = b.hit, aHit = b.aHit, aOut = b.out;
+    var b = makeBall(), wb = b.el, hit = b.hit, aHit = b.aHit, aOut = b.out, a = b.aRest;
     ball = b;
     wb.animate([{ transform: 'rotate(' + aOut + 'deg)', opacity: 0 }, { opacity: 1, offset: 0.2 }, { transform: 'rotate(' + aHit + 'deg)', opacity: 1 }],
       { duration: 750, easing: 'cubic-bezier(.45,0,.9,.6)', fill: 'forwards' }).finished.then(function () {
       impact(hit);
-      // Rebound, then a damped pendulum swing that settles hanging straight down, clear of the word.
+      // Rebound, then a damped sway that settles slanted, with the ball resting right beside the O.
       wb.animate([
         { transform: 'rotate(' + aHit + 'deg)' },
-        { transform: 'rotate(-14deg)', offset: 0.3 },
-        { transform: 'rotate(7deg)', offset: 0.55 },
-        { transform: 'rotate(-3deg)', offset: 0.78 },
-        { transform: 'rotate(1deg)', offset: 0.92 },
-        { transform: 'rotate(0deg)' }
+        { transform: 'rotate(' + (aHit - 12) + 'deg)', offset: 0.3 },
+        { transform: 'rotate(' + (a + 6) + 'deg)', offset: 0.55 },
+        { transform: 'rotate(' + (a - 2.5) + 'deg)', offset: 0.78 },
+        { transform: 'rotate(' + (a + 1) + 'deg)', offset: 0.92 },
+        { transform: 'rotate(' + a + 'deg)' }
       ], { duration: 2200, easing: 'ease-in-out', fill: 'forwards' });
     });
   }
@@ -506,9 +515,44 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
         if (!p.done) moving = true;
       });
       if (moving) requestAnimationFrame(step);
-      else busy = false; // the rubble stays where it landed, piled in front of the knocked-over letters
+      else rockify();
     }
     requestAnimationFrame(step);
+  }
+
+  // Once the dust settles, the broken pieces give way to a row of solid rocks resting at the foot of the word.
+  // The rocks are drawn in em units (1em = 100), so they stay in place at any text size.
+  function rockify() {
+    var w = demo.offsetWidth / geo.fs, x0 = -0.06, x1 = w + 0.04, gy = 91;
+    var fills = ['#d9d9d9', '#bfbfbf', '#a6a6a6', '#cccccc', '#b3b3b3'], polys = [];
+    function rock(cx, rw, rh, fill) {
+      var pts = [[cx - rw / 2, gy]];
+      for (var k = 1; k <= 5; k++) {
+        var t = Math.PI * (1 - k / 6);
+        pts.push([cx + Math.cos(t) * rw / 2 * (0.82 + Math.random() * 0.18), gy - Math.sin(t) * rh * (0.75 + Math.random() * 0.35)]);
+      }
+      pts.push([cx + rw / 2, gy]);
+      polys.push('<polygon points="' + pts.map(function (q) { return q[0].toFixed(1) + ',' + q[1].toFixed(1); }).join(' ') + '" fill="' + fill + '"/>');
+    }
+    for (var x = x0 * 100 + 8; x < x1 * 100 - 6; x += 13 + Math.random() * 7) rock(x, 18 + Math.random() * 10, 11 + Math.random() * 7, fills[polys.length % 3 + 2]);
+    for (x = x0 * 100 + 12; x < x1 * 100 - 8; x += 16 + Math.random() * 9) rock(x, 11 + Math.random() * 7, 6 + Math.random() * 4, fills[polys.length % 3]);
+    rocks = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    rocks.setAttribute('class', 'rocks');
+    rocks.setAttribute('aria-hidden', 'true');
+    rocks.setAttribute('viewBox', (x0 * 100) + ' 0 ' + ((x1 - x0) * 100) + ' 100');
+    rocks.style.cssText = 'position:absolute;top:0;left:' + x0 + 'em;width:' + (x1 - x0) + 'em;height:1em;overflow:visible;pointer-events:none';
+    rocks.innerHTML = '<g stroke="#000" stroke-width="1.2" stroke-linejoin="round">' + polys.join('') + '</g>';
+    demo.appendChild(rocks);
+    [].forEach.call(rocks.querySelectorAll('polygon'), function (pg, i) {
+      pg.style.transformBox = 'fill-box';
+      pg.style.transformOrigin = '50% 100%';
+      pg.animate([{ transform: 'scale(.4, .2)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 380, delay: 120 + i * 12, easing: 'cubic-bezier(.2,.8,.3,1.2)', fill: 'backwards' });
+    });
+    var w0 = wall;
+    w0.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 450, easing: 'ease-in', fill: 'forwards' }).finished.then(function () {
+      if (wall === w0) { w0.remove(); wall = null; }
+      busy = false;
+    });
   }
 
   function impact(hit) {
@@ -565,7 +609,7 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
     if (busy) return;
     if (wall && !ball) build(false);
     else if (wall) { wall.remove(); wall = null; } // rubble was laid out for the old size
-    if (ball) { ball.el.remove(); geo = measure(); ball = makeBall(); ball.el.style.transform = 'rotate(0deg)'; }
+    if (ball) { ball.el.remove(); geo = measure(); ball = makeBall(); ball.el.style.transform = 'rotate(' + ball.aRest + 'deg)'; }
   });
   // The wall is up from the start; the ball sets off with the drafted A's so they finish together.
   build(false);
