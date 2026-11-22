@@ -307,7 +307,7 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
     chars.forEach(function (c, i) { c.style.transform = rest(i); });
     return;
   }
-  var busy = false, wall = null, pieces = [], geo = null;
+  var busy = false, wall = null, pieces = [], geo = null, ball = null;
 
   // Wall geometry in px, measured from the word: it covers the caps down to the ground line.
   function measure() {
@@ -339,7 +339,7 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
     wall.className = 'wall';
     wall.setAttribute('aria-hidden', 'true');
     demo.appendChild(wall);
-    var winW = g.bw * 1.5, winH = g.bh * 3, winTop = g.top + g.bh * 1.5;
+    var winW = g.bh * 3, winH = winW, winTop = g.top + g.bh * 1.5; // square openings
     var wins = [g.left + g.width * 0.26 - winW / 2, g.left + g.width * 0.72 - winW / 2];
     function inWindow(x, y, w, h) {
       return wins.some(function (wx) { return x < wx + winW && x + w > wx && y < winTop + winH && y + h > winTop; });
@@ -369,13 +369,12 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
     }
   }
 
-  function swing() {
-    busy = true;
+  // The ball hangs from a pivot above and right of the wall; it hits the wall's right side.
+  function makeBall() {
     var g = geo, r = 0.3 * g.fs, h = demo.offsetHeight;
     var wallRight = g.left + g.width;
     var pivot = { x: wallRight + 0.8 * g.fs, y: -2.4 * g.fs }, hit = { x: wallRight + 0.7 * r, y: h * 0.5 };
     var dx = hit.x - pivot.x, dy = hit.y - pivot.y, L = Math.hypot(dx, dy);
-    var aHit = Math.atan2(-dx, dy) * 180 / Math.PI, aOut = -70; // CSS rotation: positive swings the ball left
     var wb = document.createElement('div');
     wb.className = 'wb';
     wb.style.left = pivot.x + 'px';
@@ -386,11 +385,25 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
       '<circle cx="0" cy="' + L + '" r="' + (r * 0.62) + '" fill="none" stroke="#8c8c8c" stroke-width="1" stroke-dasharray="3 3"/>' +
       '<path d="M' + (-r) + ' ' + L + 'H' + r + 'M0 ' + (L - r) + 'V' + (L + r) + '" stroke="#8c8c8c" stroke-width=".75"/></svg>';
     demo.appendChild(wb);
+    return { el: wb, hit: hit, aHit: Math.atan2(-dx, dy) * 180 / Math.PI, out: -70 }; // CSS rotation: positive swings the ball left
+  }
+
+  function swing() {
+    busy = true;
+    var b = makeBall(), wb = b.el, hit = b.hit, aHit = b.aHit, aOut = b.out;
+    ball = b;
     wb.animate([{ transform: 'rotate(' + aOut + 'deg)', opacity: 0 }, { opacity: 1, offset: 0.2 }, { transform: 'rotate(' + aHit + 'deg)', opacity: 1 }],
       { duration: 750, easing: 'cubic-bezier(.45,0,.9,.6)', fill: 'forwards' }).finished.then(function () {
       impact(hit);
-      wb.animate([{ transform: 'rotate(' + aHit + 'deg)', opacity: 1 }, { transform: 'rotate(' + (aHit - 22) + 'deg)', opacity: 1, offset: 0.45 }, { transform: 'rotate(' + aOut + 'deg)', opacity: 0 }],
-        { duration: 1100, easing: 'cubic-bezier(.2,.6,.3,1)', fill: 'forwards' }).finished.then(function () { wb.remove(); });
+      // Rebound, then a damped pendulum swing that settles hanging straight down, clear of the word.
+      wb.animate([
+        { transform: 'rotate(' + aHit + 'deg)' },
+        { transform: 'rotate(-14deg)', offset: 0.3 },
+        { transform: 'rotate(7deg)', offset: 0.55 },
+        { transform: 'rotate(-3deg)', offset: 0.78 },
+        { transform: 'rotate(1deg)', offset: 0.92 },
+        { transform: 'rotate(0deg)' }
+      ], { duration: 2200, easing: 'ease-in-out', fill: 'forwards' });
     });
   }
 
@@ -469,6 +482,12 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
   function again() {
     if (busy) return;
     busy = true;
+    if (ball) {
+      var old = ball.el;
+      old.getAnimations().forEach(function (a) { a.commitStyles && a.commitStyles(); a.cancel(); });
+      old.animate([{ opacity: 1 }, { transform: 'rotate(' + ball.out + 'deg)', opacity: 0 }], { duration: 500, easing: 'ease-in', fill: 'forwards' }).finished.then(function () { old.remove(); });
+      ball = null;
+    }
     Promise.all(chars.map(function (c) {
       return c.animate([{ transform: getComputedStyle(c).transform }, { transform: 'none' }], { duration: 350, easing: 'ease-out', fill: 'forwards' }).finished;
     })).then(function () {
@@ -480,7 +499,11 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
 
   demo.addEventListener('mouseenter', again);
   demo.addEventListener('click', again);
-  addEventListener('resize', function () { if (wall && !busy) build(false); });
+  addEventListener('resize', function () {
+    if (busy) return;
+    if (wall) build(false);
+    if (ball) { ball.el.remove(); geo = measure(); ball = makeBall(); ball.el.style.transform = 'rotate(0deg)'; }
+  });
   // The wall is up from the start; the ball sets off with the drafted A's so they finish together.
   build(false);
   var ready = document.fonts ? document.fonts.ready : Promise.resolve();
