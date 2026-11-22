@@ -375,8 +375,8 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
     }
   }
 
-  // The chain hangs from just above the I in "redrawing", and the ball comes to rest slanted, right beside
-  // the O. It hits the wall where that swing crosses the wall's right side.
+  // The chain hangs from just above the I in "redrawing". The ball swings in, strikes the wall right beside
+  // the O, and stays there.
   function makeBall() {
     var g = geo, r = 0.3 * g.fs, d = demo.getBoundingClientRect(), pin = document.querySelector('h1 .pin').getBoundingClientRect();
     var o = chars[3];
@@ -384,10 +384,7 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
     var rest = { x: o.offsetLeft + o.offsetWidth + r + 0.06 * g.fs, y: 0.09 * g.fs + r }; // clear of the O even once it tips over
     var L = Math.hypot(rest.x - pivot.x, rest.y - pivot.y);
     var deg = function (x, y) { return Math.atan2(-(x - pivot.x), y - pivot.y) * 180 / Math.PI; }; // CSS rotation: positive swings the ball left
-    var aRest = deg(rest.x, rest.y), wallRight = g.left + g.width, hx = wallRight + 0.7 * r, hit;
-    if (Math.abs(hx - pivot.x) < L) hit = { x: hx, y: pivot.y + Math.sqrt(L * L - (hx - pivot.x) * (hx - pivot.x)) };
-    else hit = { x: rest.x + r, y: rest.y };
-    var aHit = deg(hit.x, hit.y);
+    var aRest = deg(rest.x, rest.y), hit = rest, aHit = aRest;
     var wb = document.createElement('div');
     wb.className = 'wb';
     wb.style.left = pivot.x + 'px';
@@ -409,20 +406,11 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
 
   function swing() {
     busy = true;
-    var b = makeBall(), wb = b.el, hit = b.hit, aHit = b.aHit, aOut = b.out, a = b.aRest;
+    var b = makeBall(), wb = b.el, hit = b.hit, aHit = b.aHit, aOut = b.out;
     ball = b;
     wb.animate([{ transform: 'rotate(' + aOut + 'deg)', opacity: 0 }, { opacity: 1, offset: 0.2 }, { transform: 'rotate(' + aHit + 'deg)', opacity: 1 }],
       { duration: 750, easing: 'cubic-bezier(.45,0,.9,.6)', fill: 'forwards' }).finished.then(function () {
       impact(hit);
-      // Rebound, then a damped sway that settles slanted, with the ball resting right beside the O.
-      wb.animate([
-        { transform: 'rotate(' + aHit + 'deg)' },
-        { transform: 'rotate(' + (aHit - 12) + 'deg)', offset: 0.3 },
-        { transform: 'rotate(' + (a + 6) + 'deg)', offset: 0.55 },
-        { transform: 'rotate(' + (a - 2.5) + 'deg)', offset: 0.78 },
-        { transform: 'rotate(' + (a + 1) + 'deg)', offset: 0.92 },
-        { transform: 'rotate(' + a + 'deg)' }
-      ], { duration: 2200, easing: 'ease-in-out', fill: 'forwards' });
     });
   }
 
@@ -523,19 +511,23 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
   // Once the dust settles, the broken pieces give way to a row of solid rocks resting at the foot of the word.
   // The rocks are drawn in em units (1em = 100), so they stay in place at any text size.
   function rockify() {
-    var w = demo.offsetWidth / geo.fs, x0 = -0.06, x1 = w + 0.04, gy = 91;
-    var fills = ['#d9d9d9', '#bfbfbf', '#a6a6a6', '#cccccc', '#b3b3b3'], polys = [];
-    function rock(cx, rw, rh, fill) {
-      var pts = [[cx - rw / 2, gy]];
-      for (var k = 1; k <= 5; k++) {
-        var t = Math.PI * (1 - k / 6);
-        pts.push([cx + Math.cos(t) * rw / 2 * (0.82 + Math.random() * 0.18), gy - Math.sin(t) * rh * (0.75 + Math.random() * 0.35)]);
+    var w = demo.offsetWidth / geo.fs, x0 = -0.06, x1 = w + 0.04;
+    var fills = ['#d9d9d9', '#cccccc', '#bfbfbf', '#b3b3b3', '#a6a6a6'], polys = [];
+    // A smooth closed stone: points around an ellipse with a little jitter, joined with curves.
+    function rock(cx, cy, rx, ry, fill) {
+      var n = 8, pts = [];
+      for (var k = 0; k < n; k++) {
+        var t = k / n * Math.PI * 2, j = 0.86 + Math.random() * 0.22;
+        pts.push([cx + Math.cos(t) * rx * j, cy + Math.sin(t) * ry * j]);
       }
-      pts.push([cx + rw / 2, gy]);
-      polys.push('<polygon points="' + pts.map(function (q) { return q[0].toFixed(1) + ',' + q[1].toFixed(1); }).join(' ') + '" fill="' + fill + '"/>');
+      var mid = function (a, b) { return [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]; }, f = function (q) { return q[0].toFixed(1) + ' ' + q[1].toFixed(1); };
+      var d = 'M' + f(mid(pts[n - 1], pts[0]));
+      for (k = 0; k < n; k++) d += 'Q' + f(pts[k]) + ' ' + f(mid(pts[k], pts[(k + 1) % n]));
+      polys.push('<path d="' + d + 'Z" fill="' + fill + '"/>');
     }
-    for (var x = x0 * 100 + 8; x < x1 * 100 - 6; x += 13 + Math.random() * 7) rock(x, 18 + Math.random() * 10, 11 + Math.random() * 7, fills[polys.length % 3 + 2]);
-    for (x = x0 * 100 + 12; x < x1 * 100 - 8; x += 16 + Math.random() * 9) rock(x, 11 + Math.random() * 7, 6 + Math.random() * 4, fills[polys.length % 3]);
+    // Back row: larger, darker stones; front row: smaller, lighter ones a little lower, filling the gaps.
+    for (var x = x0 * 100 + 8; x < x1 * 100 - 4; x += 12 + Math.random() * 6) rock(x, 86 + Math.random() * 4, 9 + Math.random() * 5, 7 + Math.random() * 4, fills[2 + Math.floor(Math.random() * 3)]);
+    for (x = x0 * 100 + 14; x < x1 * 100 - 6; x += 11 + Math.random() * 6) rock(x, 94 + Math.random() * 3, 6 + Math.random() * 4, 5 + Math.random() * 2.5, fills[Math.floor(Math.random() * 2)]);
     rocks = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     rocks.setAttribute('class', 'rocks');
     rocks.setAttribute('aria-hidden', 'true');
@@ -543,7 +535,7 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
     rocks.style.cssText = 'position:absolute;top:0;left:' + x0 + 'em;width:' + (x1 - x0) + 'em;height:1em;overflow:visible;pointer-events:none';
     rocks.innerHTML = '<g stroke="#000" stroke-width="1.2" stroke-linejoin="round">' + polys.join('') + '</g>';
     demo.appendChild(rocks);
-    [].forEach.call(rocks.querySelectorAll('polygon'), function (pg, i) {
+    [].forEach.call(rocks.querySelectorAll('path'), function (pg, i) {
       pg.style.transformBox = 'fill-box';
       pg.style.transformOrigin = '50% 100%';
       pg.animate([{ transform: 'scale(.4, .2)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 380, delay: 120 + i * 12, easing: 'cubic-bezier(.2,.8,.3,1.2)', fill: 'backwards' });
