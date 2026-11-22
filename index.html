@@ -79,12 +79,6 @@ h1 { font-size: min(96px, calc((100vw - 58px) / 7.8)); }
 .wb { position: absolute; left: 0; top: 0; width: 0; height: 0; pointer-events: none; transform-origin: 0 0; }
 .wb svg { position: absolute; left: 0; top: 0; overflow: visible; }
 .dust { position: absolute; left: 0; top: 0; width: 4px; height: 4px; background: var(--mid); pointer-events: none; }
-.wall { position: absolute; left: 0; top: 0; pointer-events: none; }
-.wall .pc { position: absolute; left: 0; top: 0; box-sizing: border-box; will-change: transform; }
-.wall .brick { background: #0d0d0d; border: 1px solid rgba(245,245,245,.5); }
-.wall .cap { background: #0d0d0d; border: 1.5px solid #f5f5f5; }
-.wall .win { border: 1.5px solid #f5f5f5; background: linear-gradient(#f5f5f5, #f5f5f5) center / 1px 100% no-repeat, linear-gradient(#f5f5f5, #f5f5f5) center / 100% 1px no-repeat; }
-.wall .sill { background: #f5f5f5; }
 @media (prefers-reduced-motion: reduce) { .drawn .ln { animation: none; stroke-dashoffset: 0; stroke-dasharray: none; } .drawn .guide, .drawn .pt { animation: none; opacity: 1; } }
 
 /* sections: the same space above and below every section, with a rule between them */
@@ -292,11 +286,9 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
   weight();
 })();
 
-// "Demo.": a line-drawn brick wall with two windows covers the word. A wrecking ball on a chain swings in, the
-// wall shatters and falls, the rubble settles into solid rocks at the foot of the word, the letters are left
-// knocked askew, and the ball comes to rest beside the O. It runs alongside
-// the drafted A's so both finish together. Hover (or tap) the word to rebuild the wall and knock it down again.
-// Reduced motion shows the tumbled letters only, with no wall.
+// "Demo.": a wrecking ball on a chain hangs from just above the I in "redrawing". It swings in alongside the
+// drafted A's, strikes right beside the O with a puff of dust, knocks the letters askew and stays there.
+// Hover (or tap) the word to stand the letters back up and swing again. Reduced motion shows the tumbled letters only.
 (function () {
   var demo = document.querySelector('.demo');
   if (!demo) return;
@@ -308,74 +300,10 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
     chars.forEach(function (c, i) { c.style.transform = rest(i); });
     return;
   }
-  var busy = false, wall = null, pieces = [], geo = null, ball = null, rocks = null;
+  var busy = false, geo = null, ball = null;
+  function measure() { return { fs: parseFloat(getComputedStyle(demo).fontSize) }; }
 
-  // Wall geometry in px, measured from the word: it covers the caps down to the ground line.
-  function measure() {
-    var fs = parseFloat(getComputedStyle(demo).fontSize), w = demo.offsetWidth;
-    var left = -0.08 * fs, top = 0.04 * fs, ground = 0.9 * fs, width = w + 0.14 * fs;
-    var rows = 7, bh = (ground - top) / rows, bw = bh * 2.2;
-    return { fs: fs, w: w, left: left, top: top, ground: ground, width: width, rows: rows, bh: bh, bw: bw };
-  }
-
-  function piece(cls, x, y, w, h) {
-    var el = document.createElement('span');
-    el.className = 'pc ' + cls;
-    el.style.width = w + 'px';
-    el.style.height = h + 'px';
-    el.style.left = x + 'px';
-    el.style.top = y + 'px';
-    wall.appendChild(el);
-    pieces.push({ el: el, x: x, y: y, w: w, h: h });
-    return el;
-  }
-
-  // Running-bond bricks with two window openings (over D-E and M-O), plus a cap course along the top.
-  function build(animateIn) {
-    if (wall) wall.remove();
-    if (rocks) { rocks.remove(); rocks = null; }
-    pieces = [];
-    geo = measure();
-    var g = geo;
-    wall = document.createElement('span');
-    wall.className = 'wall';
-    wall.setAttribute('aria-hidden', 'true');
-    demo.appendChild(wall);
-    // Square openings three courses tall (rows 2-4), with bricks cut flush to their sides.
-    var winRow = 2, winRows = 3, winH = g.bh * winRows, winW = winH, winTop = g.top + winRow * g.bh;
-    var wins = [g.left + g.width * 0.26 - winW / 2, g.left + g.width * 0.72 - winW / 2];
-    for (var r = 0; r < g.rows; r++) {
-      var y = g.top + r * g.bh, x = g.left - (r % 2 ? g.bw / 2 : 0), cut = r >= winRow && r < winRow + winRows;
-      for (; x < g.left + g.width; x += g.bw) {
-        var segs = [[Math.max(x, g.left), Math.min(x + g.bw, g.left + g.width)]];
-        if (cut) wins.forEach(function (wx) {
-          segs = segs.reduce(function (out, sg) {
-            if (sg[1] <= wx || sg[0] >= wx + winW) out.push(sg);
-            else { if (sg[0] < wx) out.push([sg[0], wx]); if (sg[1] > wx + winW) out.push([wx + winW, sg[1]]); }
-            return out;
-          }, []);
-        });
-        segs.forEach(function (sg) { if (sg[1] - sg[0] >= 2) piece('brick', sg[0], y, sg[1] - sg[0], g.bh).dataset.row = r; });
-      }
-    }
-    wins.forEach(function (wx) {
-      piece('win', wx, winTop, winW, winH).dataset.row = 3;
-      piece('sill', wx - 0.06 * g.fs, winTop + winH, winW + 0.12 * g.fs, Math.max(2, 0.03 * g.fs)).dataset.row = 4;
-    });
-    // Cap course in short slabs, so it breaks up like the bricks instead of flying off as one plank.
-    var capL = g.left - 0.04 * g.fs, capW = g.width + 0.08 * g.fs, slabs = Math.max(2, Math.round(capW / (g.bw * 1.5)));
-    for (var c = 0; c < slabs; c++) piece('cap', capL + c * capW / slabs, g.top - g.bh * 0.55, capW / slabs, g.bh * 0.55).dataset.row = -1;
-    if (animateIn) {
-      // Lay the courses bottom-up.
-      pieces.forEach(function (p) {
-        var r = +p.el.dataset.row;
-        p.el.animate([{ opacity: 0, transform: 'translateY(-' + (0.12 * g.fs) + 'px)' }, { opacity: 1, transform: 'none' }],
-          { duration: 220, delay: (g.rows - r) * 55, easing: 'ease-out', fill: 'backwards' });
-      });
-    }
-  }
-
-  // The chain hangs from just above the I in "redrawing". The ball swings in, strikes the wall right beside
+  // The chain hangs from just above the I in "redrawing". The ball swings in, strikes right beside
   // the O, and stays there.
   function makeBall() {
     var g = geo, r = 0.3 * g.fs, d = demo.getBoundingClientRect(), pin = document.querySelector('h1 .pin').getBoundingClientRect();
@@ -406,152 +334,20 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
 
   function swing() {
     busy = true;
-    var b = makeBall(), wb = b.el, hit = b.hit, aHit = b.aHit, aOut = b.out;
+    geo = measure();
+    var b = makeBall(), wb = b.el;
     ball = b;
-    wb.animate([{ transform: 'rotate(' + aOut + 'deg)', opacity: 0 }, { opacity: 1, offset: 0.2 }, { transform: 'rotate(' + aHit + 'deg)', opacity: 1 }],
+    wb.animate([{ transform: 'rotate(' + b.out + 'deg)', opacity: 0 }, { opacity: 1, offset: 0.2 }, { transform: 'rotate(' + b.aHit + 'deg)', opacity: 1 }],
       { duration: 750, easing: 'cubic-bezier(.45,0,.9,.6)', fill: 'forwards' }).finished.then(function () {
-      impact(hit);
-    });
-  }
-
-  // Bricks get a push away from the hit (stronger and sooner the closer they are), fall under gravity,
-  // bounce on the ground line, settle, then fade out.
-  // On impact every piece breaks up: bricks into two to four chunks (some split again lengthwise), and the
-  // window frames, sills and cap stones into short bars, so the rubble reads as broken material.
-  function shatter() {
-    var g = geo, frags = [], bar = Math.max(1.5, 0.018 * g.fs);
-    function add(cls, x, y, w, h) {
-      if (w < 1 || h < 1) return;
-      var el = document.createElement('span');
-      el.className = 'pc ' + cls;
-      el.style.width = w + 'px';
-      el.style.height = h + 'px';
-      el.style.left = x + 'px';
-      el.style.top = y + 'px';
-      wall.appendChild(el);
-      frags.push({ el: el, x: x, y: y, w: w, h: h });
-    }
-    function chop(cls, x, y, w, h, maxLen) {
-      var n = Math.max(1, Math.round(w / maxLen + Math.random())), cuts = [0];
-      for (var i = 1; i < n; i++) cuts.push(w * (i / n + (Math.random() - 0.5) * 0.25 / n));
-      cuts.push(w);
-      for (var j = 0; j < n; j++) add(cls, x + cuts[j], y, cuts[j + 1] - cuts[j], h);
-    }
-    pieces.forEach(function (p) {
-      var cls = p.el.className.replace('pc ', '');
-      p.el.remove();
-      if (cls === 'brick') {
-        var n = 2 + Math.floor(Math.random() * 2), x = p.x;
-        for (var i = 0; i < n; i++) {
-          var w = i === n - 1 ? p.x + p.w - x : p.w / n * (0.7 + Math.random() * 0.6);
-          if (Math.random() < 0.2) { add('brick', x, p.y, w, p.h / 2); add('brick', x, p.y + p.h / 2, w, p.h / 2); }
-          else add('brick', x, p.y, w, p.h);
-          x += w;
-        }
-      } else if (cls === 'win') {
-        var cx = p.x + p.w / 2, cy = p.y + p.h / 2;
-        chop('sill', p.x, p.y, p.w, bar, p.w / 2.5);
-        chop('sill', p.x, p.y + p.h - bar, p.w, bar, p.w / 2.5);
-        chop('sill', p.x, cy - bar / 2, p.w, 1, p.w / 3);
-        [p.x, p.x + p.w - bar, cx - 0.5].forEach(function (vx, k) {
-          var t = k === 2 ? 1 : bar, h1 = p.h * (0.35 + Math.random() * 0.3);
-          add('sill', vx, p.y, t, h1);
-          add('sill', vx, p.y + h1, t, p.h - h1);
-        });
-      } else {
-        chop(cls, p.x, p.y, p.w, p.h, g.bh * 1.1);
-      }
-    });
-    pieces = frags;
-  }
-
-  function collapse(hit) {
-    shatter();
-    var g = geo, fsk = g.fs / 100, grav = 2600 * fsk, span = g.width * 1.2, t0 = performance.now(), live = pieces.slice();
-    live.forEach(function (p) {
-      var cx = p.x + p.w / 2, cy = p.y + p.h / 2, d = Math.hypot(cx - hit.x, cy - hit.y), k = Math.max(0, 1 - d / span);
-      p.delay = d / (g.fs * 9);
-      p.vx = -(250 + Math.random() * 350) * (0.3 + k) * fsk;
-      p.vy = (-(120 + Math.random() * 260) * k - 40) * fsk;
-      p.vr = (Math.random() - 0.5) * (p.w > g.bw ? 260 : 760);
-      p.rest = Math.random() * 0.045 * g.fs;
-      p.dx = 0; p.dy = 0; p.rot = 0; p.bounces = 0; p.done = false;
-    });
-    // Advance in fixed 1/120 s steps to match real elapsed time, so every piece reaches the ground
-    // even when the browser hands out few frames (a slow phone, a background tab).
-    var H = 1 / 120, simT = 0, minX = g.left - 0.25 * g.fs;
-    function advance(p) {
-      if (p.done || simT < p.delay) return;
-      p.vy += grav * H;
-      p.dx += p.vx * H; p.dy += p.vy * H; p.rot += p.vr * H;
-      // Keep the rubble near the word instead of sliding off toward the page edge.
-      if (p.x + p.dx < minX) { p.dx = minX - p.x; p.vx = 0; }
-      var floor = g.ground - p.rest - (p.y + p.h);
-      if (p.dy > floor) {
-        p.dy = floor;
-        p.vy *= -0.28; p.vx *= 0.55; p.vr *= 0.45;
-        if (++p.bounces > 2 || Math.abs(p.vy) < 40 * fsk) { p.vy = 0; p.vx = 0; p.vr = 0; p.done = true; }
-      }
-    }
-    function step(now) {
-      var t = Math.min((now - t0) / 1000, 4);
-      while (simT < t) { live.forEach(advance); simT += H; }
-      var moving = false;
-      live.forEach(function (p) {
-        if (simT >= 4 && !p.done) { p.dy = g.ground - p.rest - (p.y + p.h); p.done = true; } // safety net: settle anything left
-        p.el.style.transform = 'translate(' + p.dx.toFixed(1) + 'px,' + p.dy.toFixed(1) + 'px) rotate(' + p.rot.toFixed(1) + 'deg)';
-        if (!p.done) moving = true;
-      });
-      if (moving) requestAnimationFrame(step);
-      else rockify();
-    }
-    requestAnimationFrame(step);
-  }
-
-  // Once the dust settles, the broken pieces give way to a row of solid rocks resting at the foot of the word.
-  // The rocks are drawn in em units (1em = 100), so they stay in place at any text size.
-  function rockify() {
-    var w = demo.offsetWidth / geo.fs, x0 = -0.06, x1 = w + 0.04;
-    var fills = ['#d9d9d9', '#cccccc', '#bfbfbf', '#b3b3b3', '#a6a6a6'], polys = [];
-    // A smooth closed stone: points around an ellipse with a little jitter, joined with curves.
-    function rock(cx, cy, rx, ry, fill) {
-      var n = 8, pts = [];
-      for (var k = 0; k < n; k++) {
-        var t = k / n * Math.PI * 2, j = 0.86 + Math.random() * 0.22;
-        pts.push([cx + Math.cos(t) * rx * j, cy + Math.sin(t) * ry * j]);
-      }
-      var mid = function (a, b) { return [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]; }, f = function (q) { return q[0].toFixed(1) + ' ' + q[1].toFixed(1); };
-      var d = 'M' + f(mid(pts[n - 1], pts[0]));
-      for (k = 0; k < n; k++) d += 'Q' + f(pts[k]) + ' ' + f(mid(pts[k], pts[(k + 1) % n]));
-      polys.push('<path d="' + d + 'Z" fill="' + fill + '"/>');
-    }
-    // Back row: larger, darker stones; front row: smaller, lighter ones a little lower, filling the gaps.
-    for (var x = x0 * 100 + 8; x < x1 * 100 - 4; x += 12 + Math.random() * 6) rock(x, 86 + Math.random() * 4, 9 + Math.random() * 5, 7 + Math.random() * 4, fills[2 + Math.floor(Math.random() * 3)]);
-    for (x = x0 * 100 + 14; x < x1 * 100 - 6; x += 11 + Math.random() * 6) rock(x, 94 + Math.random() * 3, 6 + Math.random() * 4, 5 + Math.random() * 2.5, fills[Math.floor(Math.random() * 2)]);
-    rocks = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    rocks.setAttribute('class', 'rocks');
-    rocks.setAttribute('aria-hidden', 'true');
-    rocks.setAttribute('viewBox', (x0 * 100) + ' 0 ' + ((x1 - x0) * 100) + ' 100');
-    rocks.style.cssText = 'position:absolute;top:0;left:' + x0 + 'em;width:' + (x1 - x0) + 'em;height:1em;overflow:visible;pointer-events:none';
-    rocks.innerHTML = '<g stroke="#000" stroke-width="1.2" stroke-linejoin="round">' + polys.join('') + '</g>';
-    demo.appendChild(rocks);
-    [].forEach.call(rocks.querySelectorAll('path'), function (pg, i) {
-      pg.style.transformBox = 'fill-box';
-      pg.style.transformOrigin = '50% 100%';
-      pg.animate([{ transform: 'scale(.4, .2)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 380, delay: 120 + i * 12, easing: 'cubic-bezier(.2,.8,.3,1.2)', fill: 'backwards' });
-    });
-    var w0 = wall;
-    w0.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 450, easing: 'ease-in', fill: 'forwards' }).finished.then(function () {
-      if (wall === w0) { w0.remove(); wall = null; }
-      busy = false;
+      impact(b.hit);
+      setTimeout(function () { busy = false; }, 1100);
     });
   }
 
   function impact(hit) {
-    var g = geo, h = demo.offsetHeight;
+    var fs = geo.fs, h = demo.offsetHeight;
     demo.animate([{ transform: 'none' }, { transform: 'translateX(-3px)' }, { transform: 'translateX(2px)' }, { transform: 'none' }], { duration: 220 });
-    collapse(hit);
-    // The letters behind the wall get knocked too, right to left, just after the bricks start to go.
+    // Hit from the right, so the letters go right to left.
     [4, 3, 2, 1, 0].forEach(function (i, k) {
       chars[i].animate([
         { transform: 'none' },
@@ -559,21 +355,21 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
         { transform: rest(i), offset: 0.8 },
         { transform: rest(i, 0.02), offset: 0.9 },
         { transform: rest(i) }
-      ], { duration: 650, delay: 120 + k * 70, easing: 'cubic-bezier(.5,0,.8,.4)', fill: 'forwards' });
+      ], { duration: 650, delay: k * 70, easing: 'cubic-bezier(.5,0,.8,.4)', fill: 'forwards' });
     });
-    for (var n = 0; n < 22; n++) {
+    for (var n = 0; n < 18; n++) {
       var d = document.createElement('span'), atHit = n < 8, size = 2 + Math.random() * 4;
       d.className = 'dust';
       d.style.width = d.style.height = size + 'px';
-      var x0 = atHit ? g.w - Math.random() * 0.3 * g.fs : g.left + Math.random() * g.width, y0 = atHit ? h * (0.3 + Math.random() * 0.4) : g.ground - 2;
-      var tx = (atHit ? 10 : -30) + (Math.random() - 0.5) * 80, ty = -10 - Math.random() * 45;
+      var x0 = atHit ? hit.x - 0.3 * fs + (Math.random() - 0.5) * 0.2 * fs : Math.random() * demo.offsetWidth, y0 = atHit ? hit.y + (Math.random() - 0.5) * 0.4 * fs : h * 0.88;
+      var tx = (atHit ? -10 : -30) + (Math.random() - 0.5) * 80, ty = -10 - Math.random() * 45;
       d.style.transform = 'translate(' + x0 + 'px,' + y0 + 'px)';
       demo.appendChild(d);
       d.animate([
         { transform: 'translate(' + x0 + 'px,' + y0 + 'px)', opacity: 0.9 },
         { transform: 'translate(' + (x0 + tx) + 'px,' + (y0 + ty) + 'px)', opacity: 0.6, offset: 0.4 },
         { transform: 'translate(' + (x0 + tx * 1.3) + 'px,' + (y0 + ty * 0.4 + 18) + 'px)', opacity: 0 }
-      ], { duration: 900 + Math.random() * 500, delay: (atHit ? 0 : 250) + Math.random() * 250, easing: 'ease-out', fill: 'forwards' }).finished.then(function () { this.remove(); }.bind(d));
+      ], { duration: 900 + Math.random() * 500, delay: (atHit ? 0 : 200) + Math.random() * 200, easing: 'ease-out', fill: 'forwards' }).finished.then(function () { this.remove(); }.bind(d));
     }
   }
 
@@ -590,24 +386,18 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
       return c.animate([{ transform: getComputedStyle(c).transform }, { transform: 'none' }], { duration: 350, easing: 'ease-out', fill: 'forwards' }).finished;
     })).then(function () {
       chars.forEach(function (c) { c.getAnimations().forEach(function (a) { a.cancel(); }); });
-      build(true);
-      setTimeout(swing, (geo.rows + 2) * 55 + 250);
+      setTimeout(swing, 250);
     });
   }
 
   demo.addEventListener('mouseenter', again);
   demo.addEventListener('click', again);
   addEventListener('resize', function () {
-    if (busy) return;
-    if (wall && !ball) build(false);
-    else if (wall) { wall.remove(); wall = null; } // rubble was laid out for the old size
-    if (ball) { ball.el.remove(); geo = measure(); ball = makeBall(); ball.el.style.transform = 'rotate(' + ball.aRest + 'deg)'; }
+    if (busy || !ball) return;
+    ball.el.remove(); geo = measure(); ball = makeBall(); ball.el.style.transform = 'rotate(' + ball.aRest + 'deg)';
   });
-  // The wall is up from the start; the ball sets off with the drafted A's so they finish together.
-  build(false);
-  var ready = document.fonts ? document.fonts.ready : Promise.resolve();
-  ready.then(function () { if (!busy) build(false); });
-  setTimeout(function () { if (!busy) { if (!wall) build(false); swing(); } }, 500);
+  // The ball sets off with the drafted A's so they finish together.
+  setTimeout(function () { if (!busy) swing(); }, 500);
 })();
 
 // Full-page drafting grid: rulers fixed to the top and left edges, the grid and left ruler scroll with the page,
