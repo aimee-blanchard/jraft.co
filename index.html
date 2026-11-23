@@ -347,7 +347,7 @@ button.btn:disabled { opacity: .45; cursor: progress; }
           </div>
           <div class="inquiry-actions">
             <p class="inquiry-error" id="inquiry-error" role="alert"></p>
-            <button class="btn" type="submit"><span class="btn-label">Send inquiry</span><span aria-hidden="true">→</span></button>
+            <button class="btn" type="submit"><span class="btn-label">Submit</span><span aria-hidden="true">→</span></button>
           </div>
           <!-- Honeypot: left blank by people. A filled value is dropped and never sent. -->
           <div class="hp" aria-hidden="true">
@@ -745,7 +745,7 @@ const INQUIRY_ENDPOINT = 'https://jraft-inquiry.aimee-blanchard.workers.dev/';
 
     sending = true;
     submitBtn.disabled = true;
-    setLabel('Sending');
+    setLabel('Submitting');
     form.setAttribute('aria-busy', 'true');
 
     var controller = typeof AbortController === 'function' ? new AbortController() : null;
