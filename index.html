@@ -412,6 +412,19 @@ button.btn:disabled { opacity: .45; cursor: progress; }
   weight();
 })();
 
+// "Get an estimate" scrolls to Let's work together without adding #work-together to the address, so a refresh
+// starts at the top. If the address already carries it (a shared link), it is dropped once the reader scrolls back up.
+(function () {
+  var target = document.getElementById('work-together'), contact = document.getElementById('contact');
+  if (!target || !contact) return;
+  document.querySelectorAll('a[href="#work-together"]').forEach(function (a) {
+    a.addEventListener('click', function (e) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth' }); });
+  });
+  addEventListener('scroll', function () {
+    if (location.hash && contact.getBoundingClientRect().top > innerHeight * 0.5) history.replaceState(null, '', location.pathname + location.search);
+  }, { passive: true });
+})();
+
 // "Demo.": a wrecking ball on a chain hangs from just above the I in "redrawing". It swings in alongside the
 // drafted A's, strikes right beside the O with a puff of dust, knocks the letters askew and stays there.
 // Hover (or tap) the word to stand the letters back up and swing again. Reduced motion shows the tumbled letters only.
