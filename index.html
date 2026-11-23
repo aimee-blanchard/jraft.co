@@ -32,6 +32,7 @@
 }
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
+#inquiry { scroll-margin-top: 48px; }
 body { margin: 0; background: var(--bg); color: var(--fg); font: 400 16px/1.65 var(--display); -webkit-font-smoothing: antialiased; }
 a { color: inherit; text-decoration: none; }
 :focus-visible { outline: 1px solid var(--fg); outline-offset: 3px; }
@@ -126,7 +127,6 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
 .btn { display: inline-flex; align-items: center; gap: 14px; font: 500 12px/1 var(--mono); letter-spacing: .16em; text-transform: uppercase; color: var(--bg); background: var(--fg); padding: 18px 22px; transition: background .2s; }
 .btn:hover { background: #d6d6d6; }
 .btn-top { padding: 14px 18px; }
-.reply { margin: 22px 0 0; color: var(--mid); }
 
 /* inquiry form, in the contact section */
 .inquiry { position: relative; margin-top: 48px; border: 1px solid var(--line); background: rgba(0,0,0,.55); }
@@ -150,11 +150,15 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
 .field select.is-empty { color: var(--mid); }
 .field select option { color: var(--fg); background: #000; }
 .field input:focus, .field textarea:focus, .field select:focus { outline: none; }
-.field input:focus-visible, .field textarea:focus-visible, .field select:focus-visible { outline: 1px solid var(--fg); outline-offset: 4px; }
-.loc-grid { display: grid; grid-template-columns: repeat(4, 1fr); margin: 14px -24px 0; }
-.loc-item { min-width: 0; padding: 0 24px; }
+.field input:focus-visible, .field textarea:focus-visible, .field select:focus-visible { outline: none; }
+/* The whole box is the click target (see the script below); the highlight outlines the box you're typing in */
+.field, .loc-item { cursor: text; }
+.field:has(select) { cursor: pointer; }
+.field:focus-within:not(:has(.loc-grid)), .loc-item:focus-within { box-shadow: inset 0 0 0 1px var(--fg); }
+.loc-grid { display: grid; grid-template-columns: repeat(4, 1fr); margin: 4px -24px -16px; }
+.loc-item { min-width: 0; padding: 10px 24px 12px; }
 .loc-item + .loc-item { border-left: 1px solid var(--line); }
-.field:focus-within { background: rgba(255,255,255,.035); }
+.field:focus-within:not(:has(.loc-grid)), .loc-item:focus-within { background: rgba(255,255,255,.035); }
 .field input:-webkit-autofill, .field textarea:-webkit-autofill { -webkit-text-fill-color: var(--fg); caret-color: var(--fg); box-shadow: 0 0 0 1000px #000 inset; }
 .inquiry-actions { display: flex; justify-content: flex-end; align-items: center; flex-wrap: wrap; gap: 14px 16px; padding: 16px 24px; }
 .inquiry-actions .btn { flex: none; }
@@ -212,7 +216,7 @@ button.btn:disabled { opacity: .45; cursor: progress; }
     <div class="wrap">
       <div class="top">
         <a class="logo" href="#top"><img src="jrafting-logo.png" alt="Jrafting LLC" width="480" height="480"></a>
-        <a class="btn btn-top" data-mail href="mailto:hello@jraft.co">Email me <span>→</span></a>
+        <a class="btn btn-top" href="#inquiry">Get an estimate <span>↓</span></a>
       </div>
       <div class="copy">
         <span class="mono eyebrow">For design firms · Architects · General contractors</span>
@@ -279,7 +283,7 @@ button.btn:disabled { opacity: .45; cursor: progress; }
         <form class="inquiry" id="inquiry" method="post" action="#" autocomplete="on" novalidate aria-label="Project inquiry">
           <div class="inquiry-bar">
             <span class="mono">Inquiry</span>
-            <span class="mono">C-001</span>
+            <span class="mono">I’ll get back to you the next business day.</span>
           </div>
           <div class="inquiry-grid">
             <div class="field">
@@ -356,9 +360,7 @@ button.btn:disabled { opacity: .45; cursor: progress; }
         <p class="privacy">Your info is only used to reply to your inquiry and is never sold or shared.</p>
         <div class="reach">
           <span class="email">hello@jraft.co</span>
-          <a class="btn" data-mail href="mailto:hello@jraft.co">Email me <span>→</span></a>
         </div>
-        <p class="reply">I'll get back to you the next business day.</p>
       </div>
     </section>
   </main>
@@ -376,13 +378,6 @@ button.btn:disabled { opacity: .45; cursor: progress; }
 </div>
 
 <script>
-// Pre-filled inquiry email: opens the visitor's own mail app.
-(function () {
-  var body = ['Name:', 'Phone number:', 'Project location (state, county, city):', 'What you\'re looking for (room remodel, plan sets, etc.):', ''].join('\r\n\r\n');
-  var href = 'mailto:hello@jraft.co?subject=' + encodeURIComponent('Jrafting Inquiry') + '&body=' + encodeURIComponent(body);
-  document.querySelectorAll('[data-mail]').forEach(function (a) { a.href = href; });
-})();
-
 // Draw each .drawn "A" as construction lines that overshoot their corners, traced from Archivo's A
 // (units: 1/1000 em, origin at the top-left of the glyph box; baseline 833, cap line 142).
 (function () {
@@ -682,6 +677,17 @@ const INQUIRY_ENDPOINT = 'https://jraft-inquiry.aimee-blanchard.workers.dev/';
     field(name).addEventListener('input', function () { this.setCustomValidity(''); });
   });
   field('project_type').addEventListener('change', syncType);
+  // Clicking anywhere in a box puts the cursor in its field, not only on the thin input line.
+  form.addEventListener('mousedown', function (e) {
+    if (e.target.closest('input, textarea, select, button, a')) return;
+    var box = e.target.closest('.loc-item') || e.target.closest('.field');
+    if (!box) return;
+    var control = box.querySelector('input:not([type=hidden]), textarea, select');
+    if (!control || control.disabled) return;
+    e.preventDefault();
+    control.focus();
+    if (control.tagName === 'SELECT' && control.showPicker) { try { control.showPicker(); } catch (err) {} }
+  });
   syncType();
   function showError(message) { errorEl.textContent = message; }
   function showSuccess() {
