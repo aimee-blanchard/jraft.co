@@ -130,7 +130,6 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
 
 /* inquiry form, in the contact section */
 .inquiry { position: relative; margin-top: 48px; border: 1px solid var(--line); background: rgba(0,0,0,.55); }
-.inquiry-bar { display: flex; justify-content: space-between; gap: 12px 24px; flex-wrap: wrap; padding: 14px 24px; border-bottom: 1px solid var(--line); }
 .inquiry-grid { display: grid; grid-template-columns: 1fr 1fr; }
 .field { min-width: 0; padding: 18px 24px 16px; border-bottom: 1px solid var(--line); }
 .field-email { border-left: 1px solid var(--line); }
@@ -287,10 +286,6 @@ button.btn:disabled { opacity: .45; cursor: progress; }
           <p class="about">I’m Josh, the draftsman behind Jrafting LLC. You work directly with me from first sketch to finished set. I’ve tuned every step of my CAD workflow, so your plans don’t sit in a queue and hold you up from design to permit to demo. I look forward to working together.</p>
         </div>
         <form class="inquiry" id="inquiry" method="post" action="#" autocomplete="on" novalidate aria-label="Project inquiry">
-          <div class="inquiry-bar">
-            <span class="mono">Inquiry</span>
-            <span class="mono">I’ll get back to you the next business day.</span>
-          </div>
           <div class="inquiry-grid">
             <div class="field">
               <label class="mono" for="inquiry-name">Name *</label>
