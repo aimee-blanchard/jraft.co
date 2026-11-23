@@ -324,8 +324,8 @@ button.btn:disabled { opacity: .45; cursor: progress; }
               </div>
             </div>
             <div class="field field-full">
-              <label class="mono" for="inquiry-type">What you’re looking for</label>
-              <select id="inquiry-type" name="project_type" class="is-empty">
+              <label class="mono" for="inquiry-type">What you’re looking for *</label>
+              <select id="inquiry-type" name="project_type" class="is-empty" required>
                 <option value="">Select</option>
                 <option>Room remodel</option>
                 <option>Addition</option>
@@ -670,13 +670,14 @@ const INQUIRY_ENDPOINT = 'https://jraft-inquiry.aimee-blanchard.workers.dev/';
     email.setCustomValidity(emailValue ? (validEmail(emailValue) ? '' : 'Please enter a valid email address.') : 'Please enter your email.');
     phone.setCustomValidity(validPhone(phoneValue) ? '' : 'Please enter a phone number with at least 7 digits.');
     zip.setCustomValidity(validZip(zipValue) ? '' : 'Enter a 5-digit ZIP code, or ZIP+4.');
+    field('project_type').setCustomValidity(field('project_type').value ? '' : 'Please choose what you\u2019re looking for.');
     other.setCustomValidity(field('project_type').value === 'Other' && !other.value.trim() ? 'Please describe what you\u2019re looking for.' : '');
     message.setCustomValidity(message.value.trim() ? '' : 'Please tell me what you want to accomplish.');
   }
   ['name', 'email', 'phone', 'project_zip', 'message', 'project_other'].forEach(function (name) {
     field(name).addEventListener('input', function () { this.setCustomValidity(''); });
   });
-  field('project_type').addEventListener('change', syncType);
+  field('project_type').addEventListener('change', function () { this.setCustomValidity(''); syncType(); });
   // Clicking anywhere in a box puts the cursor in its field, not only on the thin input line.
   form.addEventListener('mousedown', function (e) {
     if (e.target.closest('input, textarea, select, button, a')) return;
