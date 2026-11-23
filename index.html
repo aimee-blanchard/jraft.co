@@ -136,29 +136,34 @@ h2 { font: 800 clamp(36px, 6vw, 80px)/.95 var(--display); font-stretch: 110%; te
 .field-email { border-left: 1px solid var(--line); }
 .field-full { grid-column: 1 / -1; }
 .field label { display: block; }
-.field input, .field textarea, .field select {
+.field input, .field textarea {
   display: block; width: 100%; margin: 8px 0 0; padding: 0; border: 0; border-radius: 0;
   background: transparent; box-shadow: none; color: var(--fg); caret-color: var(--fg);
   font: 400 17px/1.5 var(--display); letter-spacing: 0; text-transform: none;
 }
 .field textarea { min-height: 132px; resize: vertical; overflow-wrap: break-word; }
-.field select {
-  padding-right: 28px; cursor: pointer; appearance: none;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1.5 L6 6.5 L11 1.5' fill='none' stroke='%23f5f5f5' stroke-width='1.4'/></svg>");
-  background-repeat: no-repeat; background-position: right 2px center; background-size: 12px 8px;
-}
-.field select.is-empty { color: var(--mid); }
-.field select option { color: var(--fg); background: #000; }
-.field input:focus, .field textarea:focus, .field select:focus { outline: none; }
-.field input:focus-visible, .field textarea:focus-visible, .field select:focus-visible { outline: none; }
+/* What you're looking for: a list of checkboxes; each option's whole tile toggles it */
+.field-checks { margin: 0; border-width: 0 0 1px; border-style: solid; border-color: var(--line); }
+.field-checks legend { float: left; width: 100%; padding: 0; }
+.field-checks legend .hint { margin-left: 10px; color: var(--dim); }
+.checks { clear: both; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding-top: 12px; }
+.check { position: relative; display: flex; align-items: center; gap: 12px; min-width: 0; padding: 12px 14px; border: 1px solid var(--line); cursor: pointer; font-size: 16px; line-height: 1.3; transition: border-color .15s, background .15s; }
+.check:hover { border-color: var(--mid); }
+.check input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; }
+.check span::before { content: ""; display: inline-block; flex: none; width: 14px; height: 14px; margin-right: 12px; vertical-align: -2px; border: 1px solid var(--mid); background: transparent center / 10px 10px no-repeat; }
+.check input:checked + span::before { border-color: var(--fg); background-color: var(--fg); background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'><path d='M1.5 5.2 L4 7.5 L8.5 2.5' fill='none' stroke='%23000' stroke-width='1.6'/></svg>"); }
+.check:has(input:checked) { border-color: var(--fg); background: rgba(255,255,255,.05); }
+.check:has(input:focus-visible) { outline: 1px solid var(--fg); outline-offset: 2px; }
+.field input:focus, .field textarea:focus { outline: none; }
+.field input:focus-visible, .field textarea:focus-visible { outline: none; }
 /* The whole box is the click target (see the script below); the highlight outlines the box you're typing in */
 .field, .loc-item { cursor: text; }
-.field:has(select) { cursor: pointer; }
-.field:focus-within:not(:has(.loc-grid)), .loc-item:focus-within { box-shadow: inset 0 0 0 1px var(--fg); }
+.field-checks { cursor: default; }
+.field:focus-within:not(:has(.loc-grid)):not(.field-checks), .loc-item:focus-within { box-shadow: inset 0 0 0 1px var(--fg); }
 .loc-grid { display: grid; grid-template-columns: repeat(4, 1fr); margin: 4px -24px -16px; }
 .loc-item { min-width: 0; padding: 10px 24px 12px; }
 .loc-item + .loc-item { border-left: 1px solid var(--line); }
-.field:focus-within:not(:has(.loc-grid)), .loc-item:focus-within { background: rgba(255,255,255,.035); }
+.field:focus-within:not(:has(.loc-grid)):not(.field-checks), .loc-item:focus-within { background: rgba(255,255,255,.035); }
 .field input:-webkit-autofill, .field textarea:-webkit-autofill { -webkit-text-fill-color: var(--fg); caret-color: var(--fg); box-shadow: 0 0 0 1000px #000 inset; }
 .inquiry-actions { display: flex; justify-content: flex-end; align-items: center; flex-wrap: wrap; gap: 14px 16px; padding: 16px 24px; }
 .inquiry-actions .btn { flex: none; }
@@ -200,6 +205,7 @@ button.btn:disabled { opacity: .45; cursor: progress; }
   .logo { width: 92px; height: 92px; margin: -10px 0 -10px -10px; }
   .btn-top { padding: 12px 14px; gap: 10px; font-size: 11px; }
   .inquiry-grid { grid-template-columns: 1fr; }
+  .checks { grid-template-columns: 1fr 1fr; }
   .field-email { border-left: 0; }
   .loc-grid { grid-template-columns: 1fr; margin: 12px 0 0; }
   .loc-item { padding: 12px 0 0; }
@@ -323,18 +329,18 @@ button.btn:disabled { opacity: .45; cursor: progress; }
                 </div>
               </div>
             </div>
-            <div class="field field-full">
-              <label class="mono" for="inquiry-type">What you’re looking for *</label>
-              <select id="inquiry-type" name="project_type" class="is-empty" required>
-                <option value="">Select</option>
-                <option>Room remodel</option>
-                <option>Multi-room remodel</option>
-                <option>Addition</option>
-                <option>New build</option>
-                <option>Plan sets</option>
-                <option>Other</option>
-              </select>
-            </div>
+            <fieldset class="field field-full field-checks" id="inquiry-type">
+              <legend class="mono">What you’re looking for * <span class="hint">Select all that apply</span></legend>
+              <div class="checks">
+                <label class="check"><input type="checkbox" name="project_type" value="Room remodel"><span>Room remodel</span></label>
+                <label class="check"><input type="checkbox" name="project_type" value="Multi-room remodel"><span>Multi-room remodel</span></label>
+                <label class="check"><input type="checkbox" name="project_type" value="Addition"><span>Addition</span></label>
+                <label class="check"><input type="checkbox" name="project_type" value="New build"><span>New build</span></label>
+                <label class="check"><input type="checkbox" name="project_type" value="Plan sets"><span>Plan sets</span></label>
+                <label class="check"><input type="checkbox" name="project_type" value="Permit"><span>Permit</span></label>
+                <label class="check"><input type="checkbox" name="project_type" value="Other"><span>Other</span></label>
+              </div>
+            </fieldset>
             <div class="field field-full" id="inquiry-other-field" hidden>
               <label class="mono" for="inquiry-other">Other *</label>
               <input id="inquiry-other" name="project_other" type="text" maxlength="160">
@@ -642,19 +648,17 @@ const INQUIRY_ENDPOINT = 'https://jraft-inquiry.aimee-blanchard.workers.dev/';
     if (!zip) return true;
     return /^\d{5}(?:[-\s]?\d{4})?$/.test(zip);
   }
+  var typeBoxes = [].slice.call(form.querySelectorAll('input[name="project_type"]'));
+  function checkedTypes() { return typeBoxes.filter(function (b) { return b.checked; }).map(function (b) { return b.value; }); }
   function syncType() {
-    var selected = field('project_type').value;
-    field('project_type').classList.toggle('is-empty', !selected);
-    var showOther = selected === 'Other';
+    var showOther = checkedTypes().indexOf('Other') !== -1;
     otherWrap.hidden = !showOther;
     field('project_other').required = showOther;
     if (!showOther) field('project_other').setCustomValidity('');
   }
+  // Sent as one line, e.g. "Room remodel, Permit, Other: garage conversion".
   function projectType() {
-    var selected = value('project_type');
-    if (selected !== 'Other') return selected;
-    var detail = value('project_other');
-    return detail ? 'Other: ' + detail : '';
+    return checkedTypes().map(function (t) { return t === 'Other' ? 'Other: ' + value('project_other') : t; }).join(', ');
   }
   function applyValidity() {
     var name = field('name');
@@ -671,24 +675,23 @@ const INQUIRY_ENDPOINT = 'https://jraft-inquiry.aimee-blanchard.workers.dev/';
     email.setCustomValidity(emailValue ? (validEmail(emailValue) ? '' : 'Please enter a valid email address.') : 'Please enter your email.');
     phone.setCustomValidity(validPhone(phoneValue) ? '' : 'Please enter a phone number with at least 7 digits.');
     zip.setCustomValidity(validZip(zipValue) ? '' : 'Enter a 5-digit ZIP code, or ZIP+4.');
-    field('project_type').setCustomValidity(field('project_type').value ? '' : 'Please choose what you\u2019re looking for.');
-    other.setCustomValidity(field('project_type').value === 'Other' && !other.value.trim() ? 'Please describe what you\u2019re looking for.' : '');
+    typeBoxes[0].setCustomValidity(checkedTypes().length ? '' : 'Please select at least one.');
+    other.setCustomValidity(checkedTypes().indexOf('Other') !== -1 && !other.value.trim() ? 'Please describe what you\u2019re looking for.' : '');
     message.setCustomValidity(message.value.trim() ? '' : 'Please tell me what you want to accomplish.');
   }
   ['name', 'email', 'phone', 'project_zip', 'message', 'project_other'].forEach(function (name) {
     field(name).addEventListener('input', function () { this.setCustomValidity(''); });
   });
-  field('project_type').addEventListener('change', function () { this.setCustomValidity(''); syncType(); });
+  typeBoxes.forEach(function (b) { b.addEventListener('change', function () { typeBoxes[0].setCustomValidity(''); syncType(); }); });
   // Clicking anywhere in a box puts the cursor in its field, not only on the thin input line.
   form.addEventListener('mousedown', function (e) {
-    if (e.target.closest('input, textarea, select, button, a')) return;
+    if (e.target.closest('input, textarea, button, a, .field-checks')) return;
     var box = e.target.closest('.loc-item') || e.target.closest('.field');
     if (!box) return;
-    var control = box.querySelector('input:not([type=hidden]), textarea, select');
+    var control = box.querySelector('input:not([type=hidden]), textarea');
     if (!control || control.disabled) return;
     e.preventDefault();
     control.focus();
-    if (control.tagName === 'SELECT' && control.showPicker) { try { control.showPicker(); } catch (err) {} }
   });
   syncType();
   function showError(message) { errorEl.textContent = message; }
